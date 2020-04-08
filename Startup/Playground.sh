@@ -11,7 +11,6 @@ LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../Build/x86-linux/Components/GAMs/FFTGAM/
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../Build/x86-linux/Components/GAMs/MathExpressionGAM
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../Build/x86-linux/Components/GAMs/PyGAM
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/anaconda3/lib/
-LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$EQUINOX_LIB
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../Build/x86-linux/Components/DataSources/StreamOut
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../Build/x86-linux/Components/DataSources/ConsoleOut
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../Build/x86-linux/Components/DataSources/MDSReaderNS

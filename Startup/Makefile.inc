@@ -22,7 +22,7 @@
 #
 #############################################################
 
-OBJSX=Playground.x
+#OBJSX=Playground.x
 
 PACKAGE=
 ROOT_DIR=../
