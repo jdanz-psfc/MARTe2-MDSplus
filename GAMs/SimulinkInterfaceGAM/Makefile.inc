@@ -48,6 +48,7 @@ INCLUDES += -ISimulinkHeaders
 all: $(OBJS) $(SUBPROJ) \
 	$(BUILD_DIR)/SimulinkInterfaceGAM$(DLLEXT) \
 	$(BUILD_DIR)/rtw_capi_wrapper$(DLLEXT)
+	    cp Tank.so $(BUILD_DIR)
 	    echo  $(OBJS)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
