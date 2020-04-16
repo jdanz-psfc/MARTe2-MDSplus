@@ -280,14 +280,14 @@ bool MDSReaderNS::SetConfiguredDatabase(StructuredDataI & data) {
         numberOfNodeNames = nOfInputSignals - 1u;
     }
     if (ok) {
-        for (uint32 n = 0u; (n < nOfInputSignals) && ok; n++) {
-            uint32 nSamples;
+        for (uint32 n = 0u; (n < nOfInputSignals-1) && ok; n++) {
+            uint32 nSamples = 0u;
             ok = GetFunctionSignalSamples(InputSignals, 0u, n, nSamples);
             if (ok) {
                 ok = (nSamples == 1u);
             }
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "The number of samples shall be exactly 1");
+                REPORT_ERROR(ErrorManagement::ParametersError, "The number of samples shall be exactly 1", nSamples);
             }
         }
     }
