@@ -51,6 +51,8 @@ StreamOut::StreamOut() :
 	offsets = NULL_PTR(uint32 *);
 	streamBuffers = NULL_PTR(float32 **);
         numElements = NULL_PTR(uint32 *);
+        numSamples = NULL_PTR(uint32 *);
+	channelNames = NULL_PTR(StreamString *);
 	counter = 0;
 	shotNumber = 0;
 	nOfSignals = 0;
@@ -78,6 +80,9 @@ StreamOut::~StreamOut() {
     }
     if(numElements != NULL_PTR(uint32 *))
       GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *& >(numElements));
+
+    if(numSamples != NULL_PTR(uint32 *))
+      GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *& >(numSamples));
     
 }
 
@@ -143,34 +148,50 @@ bool StreamOut::Synchronise() {
         for (n = 0u; (n < nOfSignals) && (ok); n++) {
 	    TypeDescriptor type = GetSignalType(n);
 	    if(type == Float32Bit)
-	       streamBuffers[n][bufIdx] = *reinterpret_cast<float32 *>(&dataSourceMemory[offsets[n]]);
+	    {
+               for(uint32 sample = 0; sample < numSamples[n]; sample++)
+	           streamBuffers[n][bufIdx * numSamples[n] + sample] = *reinterpret_cast<float32 *>(&dataSourceMemory[offsets[n]+sample*sizeof(float32)]);
+	    }
 	    else if (type == Float64Bit)
 	    {
-	        streamBuffers[n][bufIdx] = *reinterpret_cast<float64 *>(&dataSourceMemory[offsets[n]]);
+
+               for(uint32 sample = 0; sample < numSamples[n]; sample++)
+		{
+	           streamBuffers[n][bufIdx * numSamples[n] + sample] = (reinterpret_cast<float64 *>(&dataSourceMemory[offsets[n]]))[sample];
+		}
+
 	    }
 	    else if (type == SignedInteger16Bit)
 	    {
-	        streamBuffers[n][bufIdx] = *reinterpret_cast<int16 *>(&dataSourceMemory[offsets[n]]);
+
+               for(uint32 sample = 0; sample < numSamples[n]; sample++)
+	           streamBuffers[n][bufIdx * numSamples[n] + sample] = (reinterpret_cast<int16 *>(&dataSourceMemory[offsets[n]]))[sample];
 	    }
 	    else if (type == SignedInteger32Bit)
 	    {
-	        streamBuffers[n][bufIdx] = *reinterpret_cast<int32 *>(&dataSourceMemory[offsets[n]]);
+
+               for(uint32 sample = 0; sample < numSamples[n]; sample++)
+	           streamBuffers[n][bufIdx * numSamples[n] + sample] = (reinterpret_cast<int32 *>(&dataSourceMemory[offsets[n]]))[sample];
 	    }
 	    else if (type == UnsignedInteger16Bit)
 	    {
-	        streamBuffers[n][bufIdx] = *reinterpret_cast<uint16 *>(&dataSourceMemory[offsets[n]]);
+
+               for(uint32 sample = 0; sample < numSamples[n]; sample++)
+	           streamBuffers[n][bufIdx * numSamples[n] + sample] = (reinterpret_cast<uint16 *>(&dataSourceMemory[offsets[n]]))[sample];
 	    }
 	    else if (type == UnsignedInteger32Bit)
 	    {
-	        streamBuffers[n][bufIdx] = *reinterpret_cast<uint32 *>(&dataSourceMemory[offsets[n]]);
+
+               for(uint32 sample = 0; sample < numSamples[n]; sample++)
+	           streamBuffers[n][bufIdx * numSamples[n] + sample] = (reinterpret_cast<uint32 *>(&dataSourceMemory[offsets[n]]))[sample];
 	    }
         }
         bufIdx = (bufIdx + 1)%bufSamples;
         counter++;
         if(bufIdx == 0)
         {
-            float32 times[bufSamples];
-            for(uint i = 0; i < bufSamples; i++)
+            float32 times[bufSamples*numSamples[timeIdx]];
+            for(uint i = 0; i < bufSamples*numSamples[timeIdx]; i++)
             times[i] = streamBuffers[timeIdx][i]/1E6;
        
             for (n = 0u; (n < nOfSignals) && (ok); n++) {
@@ -178,7 +199,9 @@ bool StreamOut::Synchronise() {
 	        {
                     StreamString signalName;
                     ok = GetSignalName(n, signalName);
-	            if (ok) MDSplus::EventStream::send(shotNumber, signalName.Buffer(), bufSamples, times, streamBuffers[n]);
+printf("Sending %d samples to channel %d  %s \n", bufSamples * numSamples[n],n, channelNames[n].Buffer());
+	            if (ok) MDSplus::EventStream::send(shotNumber, channelNames[n].Buffer(), bufSamples*numSamples[n], times, streamBuffers[n]);
+
 	         }
              }
         } 
@@ -241,6 +264,7 @@ bool StreamOut::Synchronise() {
 	}
 	bufIdx++;
     }
+
     return ok;
 }
  
@@ -330,6 +354,35 @@ bool StreamOut::Initialise(StructuredDataI& data) {
 	    
         }
     }
+
+    ok = data.MoveRelative("Signals");
+    if(!ok) {
+	REPORT_ERROR(ErrorManagement::ParametersError,"Signals node Missing.");
+	return ok;
+    }
+
+    uint32 startIdx;
+    if(timeStreaming)
+	startIdx = 1; //Time signal has no channel associated
+    else
+	startIdx = 0;
+    uint32 nOfSignals = data.GetNumberOfChildren();
+    channelNames = new StreamString[nOfSignals];
+     for (uint32 sigIdx = startIdx; sigIdx < nOfSignals; sigIdx++) {
+      ok = data.MoveToChild(sigIdx);
+      if(!ok) {
+	  REPORT_ERROR(ErrorManagement::ParametersError,"Signals node %d has no child.", sigIdx);
+	  return ok;
+      }
+      ok = data.Read("Channel", channelNames[sigIdx]);
+      if(!ok) {
+	  REPORT_ERROR(ErrorManagement::ParametersError,"Channel is missing (or is not a string) for signal %d.",sigIdx);
+	  return ok;
+      }
+      data.MoveToAncestor(1u);
+    }
+    data.MoveToAncestor(1u);
+
     return ok;
 }
 
@@ -348,6 +401,7 @@ bool StreamOut::SetConfiguredDatabase(StructuredDataI& data) {
     }
     if (ok) { //read number of nodes per function numberOfNodeNames
         //0u (second argument) because previously it is checked
+
         ok = GetFunctionNumberOfSignals(OutputSignals, 0u, nOfSignals);        //0u (second argument) because previously it is checked
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "GetFunctionNumberOfSignals() returned false");
@@ -373,14 +427,11 @@ bool StreamOut::SetConfiguredDatabase(StructuredDataI& data) {
         }
 	if(!timeStreaming)
 	    numElements = reinterpret_cast<uint32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(int32)));
+	else
+	    numSamples = reinterpret_cast<uint32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(int32)));
+
     }
-    if(ok && timeStreaming)
-    {
-      streamBuffers = reinterpret_cast<float32 **>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(float32 *)));
-      for(uint32 i = 0; i < nOfSignals; i++)
-	streamBuffers[i] = reinterpret_cast<float32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(bufSamples * sizeof(float32)));
-    }
-    if (ok) {
+    if (ok && !timeStreaming) {
         for (uint32 n = 0u; (n < nOfSignals) && ok; n++) {
             uint32 nSamples;
             ok = GetFunctionSignalSamples(OutputSignals, 0u, n, nSamples);
@@ -427,22 +478,34 @@ bool StreamOut::SetConfiguredDatabase(StructuredDataI& data) {
 	ok = GetSignalNumberOfElements(i, numberOfElements);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read NumberOfElements");
+	    return ok;
         }
-        if (ok) {
-	    if(timeStreaming)
-	    {
-                ok = numberOfElements == 1u;
-                if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfElements for the time must be 1");
-                }
-	    }
-	    else //Oscilloscope mode
-	    {
-		numElements[i] = numberOfElements;
-	    }
+	if(timeStreaming)
+	{
+            ok = numberOfElements == 1u;
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfElements for the time must be 1");
+		return ok;
+            }
+            ok = GetFunctionSignalSamples(OutputSignals, 0u, i, numSamples[i]);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read number of samples for signal %d ", i);
+		return ok;
+            }
+	}	    
+	else //Oscilloscope mode
+	{
+	    numElements[i] = numberOfElements;
 	}
       }
     }
+    if(ok && timeStreaming)
+    {
+      streamBuffers = reinterpret_cast<float32 **>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(float32 *)));
+      for(uint32 i = 0; i < nOfSignals; i++)
+	streamBuffers[i] = reinterpret_cast<float32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(bufSamples * numSamples[i] * sizeof(float32)));
+    }
+ 
     //lint -e{661} [MISRA C++ 5-0-16] Possible access out-of-bounds. nOfSignals is always 1 unit larger than numberOfNodeNames.
     if (ok) { //Count and allocate memory for dataSourceMemory, lastValue and lastTime
         offsets = new uint32[nOfSignals];
@@ -459,7 +522,7 @@ bool StreamOut::SetConfiguredDatabase(StructuredDataI& data) {
 		      if (!ok) {
                         REPORT_ERROR(ErrorManagement::ParametersError, "Error while GetSignalByteSize() for signal %u", i);
 		      }
-		      totalSignalMemory += nBytes;
+		      totalSignalMemory += nBytes * numSamples[i];
 		    }
                 }
             }
@@ -477,6 +540,9 @@ bool StreamOut::SetConfiguredDatabase(StructuredDataI& data) {
 	}
     }
     bufIdx = 0;
+
+
+
     return ok;
 }
 
