@@ -188,6 +188,7 @@ bool StreamIn::Synchronise() {
 	*reinterpret_cast<uint32 *>(&dataSourceMemory[offsets[nOfSignals]]) = counter * (int)(period * 1E6);
     }
     counter++;
+
   return ok;
 }
  
@@ -432,6 +433,7 @@ void StreamListener::dataReceived(MDSplus::Data *samples, MDSplus::Data *times, 
 	std::vector<float> bufArr;
 	try {
 	    bufArr = samples->getFloatArray();
+std::cout << "Received  " << samples << std::endl;
 	} catch(MDSplus::MdsException &exc) {
 	    printf("Exception issued when getting stream: %s", exc.what());
 	}	    
