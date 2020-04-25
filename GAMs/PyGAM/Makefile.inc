@@ -49,10 +49,10 @@ CPPFLAGS += -Wno-unused-function
 ####THE FOLLOWING DEFINITIONS MUST BE CHANGED IN ORDER TO ADAPT 
 ####TO THE INSTALLED PYTHON (>=3.7)
 # Python header file folder
-INCLUDES += -I/opt/anaconda3/include/python3.7m/
-INCLUDES += -I/opt/anaconda3/lib/python3.7/site-packages/numpy/core/include/
+INCLUDES += -I/usr/include/python3.7m/
+INCLUDES += -I/usr/lib/python3/dist-packages/numpy/core/include/
 # Python interpreter folder
-PYINTERPRETER = /opt/anaconda3/pkgs/python-3.7.4-h265db76_1/lib/
+PYINTERPRETER = /usr/lib/arm-linux-gnueabihf/
 
 ###############################################################
 
