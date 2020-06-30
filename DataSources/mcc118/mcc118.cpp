@@ -23,7 +23,7 @@ namespace MARTe {
 mcc118::mcc118() :
         DataSourceI(),
         MessageI() {
-	dataBuffers = NULL_PTR(float32 *);
+	dataBuffer = NULL_PTR(float32 *);
 	actNumChannels = 0;
 	cpuMask = 0;
 }
@@ -31,8 +31,8 @@ mcc118::mcc118() :
 mcc118::~mcc118() {
 //Free allocated buffers
 
-    if (dataBuffers != NULL_PTR(float32 *)) {
-        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(dataSourceMemory));
+    if (dataBuffer != NULL_PTR(float32 *)) {
+        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(dataBuffer));
     }
 }
 
@@ -45,10 +45,10 @@ uint32 mcc118::GetNumberOfMemoryBuffers() {
 }
 
 bool mcc118::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
-    bool ok = (dataBuffers != NULL_PTR(float32 *));
+    bool ok = (dataBuffer != NULL_PTR(float32 *));
     if (ok) {
         /*lint -e{613} dataSourceMemory cannot be NULL here*/
-        flot32 *memPtr = &dataBuffers[signalIdx];
+        float32 *memPtr = &dataBuffer[signalIdx];
         signalAddress = reinterpret_cast<void *&>(memPtr);
     }
     return ok;
@@ -89,9 +89,8 @@ bool mcc118::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* cons
 
 bool mcc118::Synchronise() {
     bool ok = true;
-    uint32 n;
 
-//Wait for data; read data and copy 16 floats into dataBuffers
+//Wait for data; read data and copy 16 floats into dataBuffer
   return ok;
 }
  
@@ -123,7 +122,7 @@ bool mcc118::Initialise(StructuredDataI& data) {
 	return ok;
     }
     uint32 nOfSignals = data.GetNumberOfChildren();
-    ok = (nOfSignals > 0 && nOfSignal <= 16);
+    ok = (nOfSignals > 0 && nOfSignals <= 16);
     if(!ok) {
 	REPORT_ERROR(ErrorManagement::ParametersError,"Incorrect number %d of signals. Must be 1-16", nOfSignals);
 	return ok;
@@ -136,7 +135,6 @@ bool mcc118::Initialise(StructuredDataI& data) {
 bool mcc118::SetConfiguredDatabase(StructuredDataI& data) {
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     //Check signal properties and compute memory
-    uint32 nOfSignals = 0u;  
     if (ok) { // Check that only one GAM is Connected to the MDSReaderNS
         uint32 auxNumberOfFunctions = GetNumberOfFunctions();
         ok = (auxNumberOfFunctions == 1u);
@@ -145,12 +143,11 @@ bool mcc118::SetConfiguredDatabase(StructuredDataI& data) {
                          auxNumberOfFunctions);
         }
     }
-    dataBuffers  = reinterpret_cast<float32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(actNumChannels * sizeof(float32)));
-    memset(dataBuffers, 0, actNumChannels * sizeof(float32));
+    dataBuffer  = reinterpret_cast<float32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(actNumChannels * sizeof(float32)));
+    memset(dataBuffer, 0, actNumChannels * sizeof(float32));
     if(ok)
     {
 	for (uint32 n = 0u; (n < actNumChannels) && ok; n++) {
-        {
 	    if(ok)
 	    {
 	        uint32 nElements;
@@ -181,11 +178,12 @@ bool mcc118::SetConfiguredDatabase(StructuredDataI& data) {
 		      REPORT_ERROR(ErrorManagement::ParametersError, "Invalid type for channel %d", n);
 		  }
 	    }
-	}
-    }
-    if(ok)
-    {
-      //Board Initialization code
+        }
+        if(ok)
+        {
+        //Board Initialization code
+    
+        }
     }
     return ok;
 }
