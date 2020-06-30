@@ -28,4 +28,8 @@
 
 export TARGET=armv8-linux
 
+EMULATE_FLAGS = -DMCC_EMULATE
+HW_INCLUDES = ""
+HW_LIBS = ""
+
 include Makefile.inc

@@ -27,8 +27,12 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
 
+INCLUDES += -I$(HW_INCLUDES)
+
 #TODO Temporary to fix problem in mdsplus include
-CPPFLAGS += -Wno-error=sign-compare 
+CPPFLAGS += -Wno-error=sign-compare
+
+CPPFLAGS += $(EMULATE_FLAGS) $(HW_LIBS)
 
 all: $(OBJS) $(SUBPROJ) \
 	$(BUILD_DIR)/mcc118$(DLLEXT)

@@ -11,6 +11,13 @@
 #include "mcc118.h"
 #include <mdsobjects.h>
 #include <stdio.h>
+#ifdef MCC_EMULATE
+#include <cstdlib>
+#include <ctime>
+#else
+#include "daqhats_utils.h"
+#endif
+
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -91,11 +98,24 @@ bool mcc118::Synchronise() {
     bool ok = true;
 
 //Wait for data; read data and copy 16 floats into dataBuffer
-  return ok;
+#ifdef MCC_EMULATE
+    srand((unsigned int)time(NULL));
+    float max_emulated=10.;
+#else
+    uint32_t options = OPTS_DEFAULT;
+    double   value;
+#endif
+    for(uint32_t i=0; i<actNumChannels; i++) 
+    {
+#ifdef MCC_EMULATE
+        dataBuffer[i] = float(rand())/float((RAND_MAX)) * max_emulated;
+#else
+        ok = mcc118_a_in_read((i < 8) ? 0 : 1, i % 8 + 1, options, &value);
+	value = (float)dataBuffer[i];
+#endif
+    }
+    return ok;
 }
- 
- 
- 
  
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
 bool mcc118::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
@@ -181,8 +201,18 @@ bool mcc118::SetConfiguredDatabase(StructuredDataI& data) {
         }
         if(ok)
         {
-        //Board Initialization code
-    
+#ifndef MCC_EMULATE
+		ok = mcc118_open(0);
+		if (ok && actNumChannels > 8) 
+		{
+			ok = mcc118_open(1);
+		}
+                if (!ok) {
+                      REPORT_ERROR(ErrorManagement::ParametersError, "Could not open MCC118 board(s)");
+                }
+
+		//NOTE: not ParametersError
+#endif    
         }
     }
     return ok;
