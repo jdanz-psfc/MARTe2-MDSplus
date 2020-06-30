@@ -12,6 +12,7 @@ LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/GAMs/R
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/GAMs/equinoxGAM/
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/GAMs/FFTGAM/
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/GAMs/MathExpressionGAM
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/GAMs/SpiderCalGAM
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/GAMs/PyGAM
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/anaconda3/lib/
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/DataSources/StreamOut
@@ -49,4 +50,5 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH
 #cgdb --args ../Build/linux/Startup/Playground.ex $1 $2 $3 $4
 #strace -o/tmp/strace.err ../Build/linux/Startup/Playground.ex $1 $2  $3 $4
 
-$MARTE_DIR/../Build/x86-linux/Startup/Playground.ex $1 $2 $3 $4 
+#$MARTE_DIR/../Build/x86-linux/Startup/Playground.ex $1 $2 $3 $4 
+valgrind $MARTE_DIR/../Build/x86-linux/Startup/Playground.ex $1 $2 $3 $4 

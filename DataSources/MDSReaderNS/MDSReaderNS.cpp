@@ -12,6 +12,8 @@
 #include "MDSReaderNS.h"
 #include "MemoryMapSynchronisedInputBroker.h"
 
+#define DEBUG
+
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -143,6 +145,8 @@ MDSReaderNS::~MDSReaderNS() {
 
 bool MDSReaderNS::Initialise(StructuredDataI& data) {
     bool ok = DataSourceI::Initialise(data);
+    
+std::cout << "MDS READER INIT" <<std::endl;
     if (ok) {
         ok = data.Read("TreeName", treeName);
         if (!ok) {
@@ -237,10 +241,15 @@ bool MDSReaderNS::Initialise(StructuredDataI& data) {
             }
         }
     }
+    std::cout << "FINISCE MDS READER INIT" << std::endl;
     return ok;
 }
 
 bool MDSReaderNS::SetConfiguredDatabase(StructuredDataI & data) {
+  
+  std::cout << "SET CONFIGURED DATABASE" << std::endl;
+  
+  
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "DataSourceI::SetConfiguredDatabase(data) returned false");
@@ -493,12 +502,13 @@ bool MDSReaderNS::SetConfiguredDatabase(StructuredDataI & data) {
 	        ok = GetNodeDataAndSamplingTime(i, signalData[i], nElements[i], signalTimebase[i],  numSignalSamples[i], nodeSamplingTime[i]);
 	    }
 
+#ifdef DEBUG
 	    std::cout << "Number of elements: " << nElements[i] << "   Number of samples: " << numSignalSamples[i] << std::endl;
 	    for(int j  =0; j < 20; j++) {
 		    std::cout << signalData[i][j] << "  "; 
 	    }
 	    std::cout<< std::endl;	    
-	    
+#endif	    
 	    
 	    if(ok)  {
 		lastSignalSample[i] = 0;
@@ -541,7 +551,9 @@ bool MDSReaderNS::SetConfiguredDatabase(StructuredDataI & data) {
 
 bool MDSReaderNS::Synchronise() {
     currentTime = startTime + numCycles * period;
-std::cout << "MDSReaderNS - Current time: " << currentTime << std::endl;    
+#ifdef DEBUG
+    std::cout << "MDSReaderNS - Current time: " << currentTime << std::endl; 
+#endif   
     for (uint32 i = 0u; i < numberOfNodeNames; i++) {
         endNode[i] = !GetDataNode(i);
     }
@@ -549,7 +561,7 @@ std::cout << "MDSReaderNS - Current time: " << currentTime << std::endl;
     if(AllNodesEnd() && !signalsEndedNotified)
     {
 	signalsEndedNotified = true;
-std::cout << "FINITO TUTTI" << std::endl;
+//std::cout << "FINITO TUTTI" << std::endl;
 	notifySignalsEnded();
     }
     else
@@ -833,17 +845,21 @@ bool MDSReaderNS::GetNodeDataAndSamplingTime(const uint32 idx, float64 * &data, 
 {
     int nDims;
     try {
-        MDSplus::Data *nodeData = MDSplus::compile(dataExpr[idx].Buffer(), tree);
+std::cout << "Expr: " << dataExpr[idx].Buffer() << std::endl;      
+//        MDSplus::Data *nodeData = MDSplus::compile(dataExpr[idx].Buffer(), tree);
+        MDSplus::Data *nodeData = tree->tdiCompile(dataExpr[idx].Buffer());
 	int dataSamples;
 	MDSplus::Data *evalData = nodeData->data();
 //std::cout << "Data: " << nodeData << std::endl;
-//std::cout << "EvalData: " << evalData << std::endl;
+std::cout << "EvalData: " << evalData << std::endl;
 	MDSplus::deleteData(nodeData);
 	int *shape = evalData->getShape(&nDims);
-std::cout << "GET NODE DATA  " << idx << std::endl; 
+#ifdef DEBUG
+        std::cout << "GET NODE DATA  " << idx << std::endl; 
+#endif
 	if(useColumnOrder[idx])
 	{
-std::cout << "USE COLUMN ORDER" << std::endl;
+//std::cout << "USE COLUMN ORDER" << std::endl;
 	  
 	    numSamples = shape[nDims-1];
 	    numElements = 1;
