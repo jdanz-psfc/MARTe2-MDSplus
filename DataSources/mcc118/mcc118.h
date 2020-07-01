@@ -177,7 +177,9 @@ namespace MARTe
      */
                 uint32 actNumChannels;
                 uint32 cpuMask;
+		// for my example RP gpioPin=22
                 uint32 gpioPin;
+		// for my example RP gpioDevice="gpiochip0"
                 StreamString gpioDevice;
 #ifndef MCC_EMULATE
                 struct gpioevent_request req;
