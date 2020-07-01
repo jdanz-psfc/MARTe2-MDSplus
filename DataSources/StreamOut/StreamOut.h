@@ -190,6 +190,8 @@ private:
     uint32 *numElements; //Valid only if not timeStreaming
     uint32 *numSamples; //Valid only if TimeStreaming
     StreamString *channelNames;
+    TypeDescriptor *sigTypes;
+    
 };
 }
 

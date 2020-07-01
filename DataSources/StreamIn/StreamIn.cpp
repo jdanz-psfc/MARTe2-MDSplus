@@ -297,16 +297,19 @@ bool StreamIn::SetConfiguredDatabase(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "GetFunctionNumberOfSignals() returned false");
         }
 	if (ok) {
-            ok = ((synchronizingIdx >= 0) || !(nOfSignals > 1u));
+            ok = ((synchronizingIdx >= 0) || (nOfSignals > 1u));
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "The number of signals must be at least 2 if SynchronizingIdx != -1");
+                REPORT_ERROR(ErrorManagement::ParametersError, "The number %d of signals must be at least 2 if SynchronizingIdx != -1", nOfSignals);
             }
 	}
     }
 
     bufElements = reinterpret_cast<uint32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(int32)));
-	bufIdxs  = reinterpret_cast<uint32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(int32)));
-    	lastBufIdxs = reinterpret_cast<uint32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(int32)));
+    memset(bufElements, 0, nOfSignals * sizeof(int32));
+    bufIdxs  = reinterpret_cast<uint32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(int32)));
+    memset(bufIdxs, 0, nOfSignals * sizeof(int32));
+    lastBufIdxs = reinterpret_cast<uint32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(int32)));
+    memset(lastBufIdxs, 0, nOfSignals * sizeof(int32));
     if(ok)
     {
 	for (uint32 n = 0u; (n < nOfSignals) && ok; n++) {
@@ -325,7 +328,10 @@ bool StreamIn::SetConfiguredDatabase(StructuredDataI& data) {
     {
       	streamBuffers = reinterpret_cast<float32 **>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(float32 *)));
       	for(uint32 i = 0; i < nOfSignals; i++)
+	{
 	    streamBuffers[i] = reinterpret_cast<float32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(numberOfBuffers * bufElements[i] * sizeof(float32)));
+	    memset(streamBuffers[i], 0, numberOfBuffers * bufElements[i] * sizeof(float32));
+	}
     }
     if (ok) {
         for (uint32 n = 0u; (n < nOfSignals) && ok; n++) {
@@ -428,6 +434,11 @@ uint32 StreamIn::GetNumberOfBuffers() const {
 
 void StreamListener::dataReceived(MDSplus::Data *samples, MDSplus::Data *times, int shot)
 {
+  
+  std::cout << "STREAM RECEIVED" << std::endl;
+  
+  return;
+  
     if(bufElements[signalIdx] > 1)
     {
 	std::vector<float> bufArr;
