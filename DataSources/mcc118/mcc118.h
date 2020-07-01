@@ -1,5 +1,5 @@
 /**
- * @file FileWriter.h
+ * @file mcc118.h
  * @brief Header file for class FileWriter
  * @date 11/08/2017
  * @author Andre' Neto
@@ -21,8 +21,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef STREAMIN_H_
-#define STREAMIN_H_
+#ifndef MCC118_H_
+#define MCC118_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -38,12 +38,15 @@
 #include "RegisteredMethodsMessageFilter.h"
 #include "EventSem.h"
 #include <mdsobjects.h>
-
+#ifndef MCC_EMULATE
+#include <linux/gpio.h>
+#endif
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-namespace MARTe {
-/**
+namespace MARTe
+{
+        /**
  * @brief A DataSourceI interface which allows Receiving a stream of incoming data via MDSplus 
  * events.
  *
@@ -62,88 +65,88 @@ namespace MARTe {
  *
  * */
 
- 
-class mcc118: public DataSourceI, public MessageI {
-public:
-    CLASS_REGISTER_DECLARATION()
+        class mcc118 : public DataSourceI, public MessageI
+        {
+        public:
+                CLASS_REGISTER_DECLARATION()
 
-    /**
+                /**
      * @brief Default constructor.
      * @details 
      */
-    mcc118();
+                mcc118();
 
-    /**
+                /**
      * @brief Destructor.
      * @details 
      */
-    virtual ~mcc118();
+                virtual ~mcc118();
 
-    /**
+                /**
      * @brief See DataSourceI::AllocateMemory. NOOP.
      * @return true.
      */
-    virtual bool AllocateMemory();
+                virtual bool AllocateMemory();
 
-    /**
+                /**
      * @brief See DataSourceI::GetNumberOfMemoryBuffers.
      * @return 1.
      */
-    virtual uint32 GetNumberOfMemoryBuffers();
+                virtual uint32 GetNumberOfMemoryBuffers();
 
-    /**
+                /**
      * @brief See DataSourceI::GetSignalMemoryBuffer.
      * @pre
      *   SetConfiguredDatabase
      */
-    virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
-            const uint32 bufferIdx,
-            void *&signalAddress);
+                virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
+                                                   const uint32 bufferIdx,
+                                                   void *&signalAddress);
 
-    /**
+                /**
      * @brief See DataSourceI::GetBrokerName.
      * @details Only OutputSignals are supported.
      * @return MemoryMapSynchInputBroker.
      */
-    virtual const char8 *GetBrokerName(StructuredDataI &data,
-            const SignalDirection direction);
+                virtual const char8 *GetBrokerName(StructuredDataI &data,
+                                                   const SignalDirection direction);
 
-    /**
+                /**
      * @brief See DataSourceI::GetInputBrokers.
      * @return MemoryMapSynchInputBroker.
      */
-    virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
-            const char8* const functionName,
-            void * const gamMemPtr);
+                virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
+                                             const char8 *const functionName,
+                                             void *const gamMemPtr);
 
-    /**
+                /**
      * @brief See DataSourceI::GetOutputBrokers.
      * @retrun false
      */
-    virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
-            const char8* const functionName,
-            void * const gamMemPtr);
+                virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
+                                              const char8 *const functionName,
+                                              void *const gamMemPtr);
 
-    /**
+                /**
      * @brief Wait and copy for data in circular buffer into data buffer.
      * @return true if the data has been received
      */
-    virtual bool Synchronise();
+                virtual bool Synchronise();
 
-    /**
+                /**
      * @brief See DataSourceI::PrepareNextState. NOOP.
      * @return true.
      */
-    virtual bool PrepareNextState(const char8 * const currentStateName,
-            const char8 * const nextStateName);
+                virtual bool PrepareNextState(const char8 *const currentStateName,
+                                              const char8 *const nextStateName);
 
-    /**
+                /**
      * @brief Loads and verifies the configuration parameters detailed in the class description.
      * @return true if all the mandatory parameters are correctly specified and if the specified optional parameters have valid values.
      */
-    virtual bool Initialise(StructuredDataI & data);
+                virtual bool Initialise(StructuredDataI &data);
 
-    /**
+                /**
      * @brief Final verification of all the parameters and activation of receiver thread
      * @details This method verifies that all the parameters 
      *  are valid and consistent with the parameters set during the initialisation phase.
@@ -152,40 +155,41 @@ public:
      * - At least one signal is set.
      * @return true if all the parameters are valid and if the thread is successfully opened.
      */
-    virtual bool SetConfiguredDatabase(StructuredDataI & data);
+                virtual bool SetConfiguredDatabase(StructuredDataI &data);
 
-    /**
+                /**
      * @brief Check if the brober is supported
      * @return true if the brober is supported
      */
-    virtual bool IsSupportedBroker(const SignalDirection direction, const uint32 functionIdx, 
-				   const uint32 functionSignalIdx, const char8* const brokerClassName);
+                virtual bool IsSupportedBroker(const SignalDirection direction, const uint32 functionIdx,
+                                               const uint32 functionSignalIdx, const char8 *const brokerClassName);
 
-    /**
+                /**
      * @brief Gets the number of buffers in the circular buffer.
      * @return the number of buffers in the circular buffer.
      */
-    uint32 GetNumberOfBuffers() const;
+                uint32 GetNumberOfBuffers() const;
 
-  
-private:
-
-  
-    float32 *dataBuffer;
-    /**
+        private:
+                float32 *dataBuffer;
+                /**
      * Offset of each signal in the dataSourceMemory
      */
-    uint32 actNumChannels;
-    uint32 cpuMask;
- };
-  
+                uint32 actNumChannels;
+                uint32 cpuMask;
+                uint32 gpioPin;
+                StreamString gpioDevice;
+#ifndef MCC_EMULATE
+                struct gpioevent_request req;
+                struct gpiohandle_data data;
+                int fd;
+#endif
+        };
 
-}
-
+} // namespace MARTe
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* STREAMIN_H_ */
-	
+#endif /* MCC118_H_ */

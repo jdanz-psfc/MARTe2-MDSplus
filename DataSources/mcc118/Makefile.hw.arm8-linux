@@ -28,8 +28,7 @@
 
 export TARGET=armv8-linux
 
-EMULATE_FLAGS = ""
-HW_INCLUDES = -I/home/pi/daqhats/include/
+HW_INCLUDES = /home/pi/daqhats/examples/c
 HW_LIBS = "-L/home/pi/daqhats/lib -ldaqhats"
 
 include Makefile.inc
