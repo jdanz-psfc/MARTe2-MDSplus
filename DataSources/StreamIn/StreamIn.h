@@ -72,10 +72,11 @@ namespace MARTe {
     EventSem *eventSem;
     FastPollingMutexSem *mutexSem;
     uint32 nOfBuffers;
+    bool checkOverflow;
 
 public:
     StreamListener(uint32 signalIdx, float32 **streamBuffers, uint32 *bufIdxs, uint32 *lastBufIdxs, 
-	uint32 *bufElements, EventSem *eventSem, FastPollingMutexSem *mutexSem, uint32 nOfBuffers)
+	uint32 *bufElements, EventSem *eventSem, FastPollingMutexSem *mutexSem, uint32 nOfBuffers, bool checkOverflow)
     {
 	this->signalIdx = signalIdx;
 	this->bufIdxs = bufIdxs;
@@ -86,6 +87,7 @@ public:
 	this->streamBuffers = streamBuffers;
 	this->bufElements = bufElements;
 	this->nOfBuffers = nOfBuffers;
+	this->checkOverflow = checkOverflow;
     } 
     virtual ~StreamListener() {}
     virtual void dataReceived(MDSplus::Data *samples, MDSplus::Data *times, int shot);

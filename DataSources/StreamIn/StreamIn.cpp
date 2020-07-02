@@ -412,7 +412,8 @@ bool StreamIn::SetConfiguredDatabase(StructuredDataI& data) {
     streamListeners = reinterpret_cast<StreamListener **>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(StreamListener *)));
 
     for (uint32 sigIdx = 0; sigIdx < nOfSignals - 1; sigIdx++) {
-	streamListeners[sigIdx] = new StreamListener(sigIdx, streamBuffers, bufIdxs, lastBufIdxs, bufElements, &eventSem, &mutexSem, numberOfBuffers);
+	streamListeners[sigIdx] = new StreamListener(sigIdx, streamBuffers, bufIdxs, lastBufIdxs, bufElements, &eventSem, 
+						     &mutexSem, numberOfBuffers, synchronizingIdx != -1);
 
 	evStream.registerListener(streamListeners[sigIdx], channelNames[sigIdx].Buffer());
 	evStream.start();
@@ -435,16 +436,12 @@ uint32 StreamIn::GetNumberOfBuffers() const {
 void StreamListener::dataReceived(MDSplus::Data *samples, MDSplus::Data *times, int shot)
 {
   
-  std::cout << "STREAM RECEIVED" << std::endl;
-  
-  return;
-  
     if(bufElements[signalIdx] > 1)
     {
 	std::vector<float> bufArr;
 	try {
 	    bufArr = samples->getFloatArray();
-std::cout << "Received  " << samples << std::endl;
+//std::cout << "Received  " << samples << std::endl;
 	} catch(MDSplus::MdsException &exc) {
 	    printf("Exception issued when getting stream: %s", exc.what());
 	}	    
@@ -456,7 +453,7 @@ std::cout << "Received  " << samples << std::endl;
 	    lastBufIdxs[signalIdx] += 1;
 	    if(lastBufIdxs[signalIdx] >= nOfBuffers * bufElements[signalIdx])
 		lastBufIdxs[signalIdx] = 0;
-	    if(lastBufIdxs[signalIdx] == bufIdxs[signalIdx])
+	    if(lastBufIdxs[signalIdx] == bufIdxs[signalIdx] && checkOverflow)
 	    {
 	        printf("Overflow receiving data for channel %d",signalIdx);
 	    }
@@ -475,7 +472,7 @@ std::cout << "Received  " << samples << std::endl;
 	{
 	    try {
 	    	bufSamples = samples->getFloatArray(&numSamples);
-std::cout << "Received  " << samples << std::endl;
+//std::cout << "Received  " << samples << std::endl;
 	    } catch(MDSplus::MdsException &exc) {
 	    	printf("Exception issued when getting stream: %s", exc.what());
 		return;
@@ -485,7 +482,7 @@ std::cout << "Received  " << samples << std::endl;
 	{
 	    try {
 	        bufSample = samples->getFloat();
-std::cout << "Received  " << bufSample << std::endl;
+//std::cout << "Received  " << bufSample << std::endl;
 	        bufSamples = &bufSample;
 	        numSamples = 1;
 	    } catch(MDSplus::MdsException &exc) {
@@ -504,7 +501,7 @@ std::cout << "Received  " << bufSample << std::endl;
 	    delete[]bufSamples;
 	eventSem->Post();
 	mutexSem->FastUnLock();
-	if(lastBufIdxs[signalIdx] == bufIdxs[signalIdx])
+	if(lastBufIdxs[signalIdx] == bufIdxs[signalIdx] && checkOverflow)
 	    printf("Overflow receiving data for channel %d", signalIdx);
 
     }
