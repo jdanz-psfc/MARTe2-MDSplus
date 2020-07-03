@@ -25,5 +25,7 @@
 #############################################################
 
 TARGET=x86-linux
+CPPFLAGS+=-fPIC
+EMULATE_FLAGS = -DMCC_EMULATE
 
 include Makefile.inc

@@ -99,17 +99,23 @@ namespace MARTe
 
         bool ok = true;
 
+	printf("GET BROKER\n");
+	
         ReferenceT<MemoryMapSynchronisedInputBroker> broker("MemoryMapSynchronisedInputBroker");
         ok = broker.IsValid();
-        if (ok)
+ 
+        printf("GET BROKER 1 %d\n", ok);   
+	if (ok)
         {
             ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
         }
 
-        if (ok)
+       printf("GET BROKER 2 %d\n", ok);
+       if (ok)
         {
             ok = inputBrokers.Insert(broker);
         }
+	printf("GET BROKER ENDED %d\n", ok);
         return ok;
     }
 
@@ -173,7 +179,8 @@ namespace MARTe
     bool mcc118::Initialise(StructuredDataI &data)
     {
 
-        bool ok = DataSourceI::Initialise(data);
+ printf("INITIALIZAZION\n");
+      bool ok = DataSourceI::Initialise(data);
         if (ok)
         {
             uint32 cpuMaskIn;
@@ -211,20 +218,22 @@ namespace MARTe
             REPORT_ERROR(ErrorManagement::ParametersError, "Signals node Missing.");
             return ok;
         }
-        uint32 nOfSignals = data.GetNumberOfChildren();
-        ok = (nOfSignals > 0 && nOfSignals <= 16);
+        actNumChannels = data.GetNumberOfChildren();
+        ok = (actNumChannels > 0 && actNumChannels <= 16);
         if (!ok)
         {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Incorrect number %d of signals. Must be 1-16", nOfSignals);
+            REPORT_ERROR(ErrorManagement::ParametersError, "Incorrect number %d of signals. Must be 1-16", actNumChannels);
             return ok;
         }
         data.MoveToAncestor(1u);
 
+printf("INITIALIZAZION ENDED\n");
         return ok;
     }
 
     bool mcc118::SetConfiguredDatabase(StructuredDataI &data)
     {
+printf("CONFIGURE %d\n", actNumChannels);
         bool ok = DataSourceI::SetConfiguredDatabase(data);
         //Check signal properties and compute memory
         if (ok)
@@ -317,7 +326,8 @@ namespace MARTe
 
 #endif
         }
-        return ok;
+ printf("CONFIGURE ENDED %d\n", ok);
+       return ok;
     }
 
     uint32 mcc118::GetNumberOfBuffers() const
