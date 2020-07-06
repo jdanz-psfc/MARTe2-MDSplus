@@ -123,6 +123,7 @@ namespace MARTe
     {
         bool ok = true;
 
+	
 //Wait for data; read data and copy 16 floats into dataBuffer
 #ifdef MCC_EMULATE
         srand((unsigned int)time(NULL));
@@ -161,10 +162,12 @@ namespace MARTe
         for (uint32_t i = 0; i < actNumChannels; i++)
         {
 #ifdef MCC_EMULATE
-            dataBuffer[i] = float(rand()) / float((RAND_MAX)) * max_emulated;
+	    float32 randVal = float(rand()) / float((RAND_MAX)) * max_emulated;
+	    printf("%f\n", randVal);
+            dataBuffer[i] = randVal;
 #else
             ok = mcc118_a_in_read((i < 8) ? 0 : 1, i % 8 + 1, options, &value);
-            value = (float)dataBuffer[i];
+            dataBuffer[i] = (float32)value;
 #endif
         }
         return ok;
