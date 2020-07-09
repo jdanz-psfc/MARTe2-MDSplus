@@ -95,9 +95,14 @@ def initialize():
     global PygamRootInputDict
     global PygamRootOutputDict
     global PygamParameterDict
+
+    PygamRootInputDict = {}
+    PygamRootOutputDict = {}
+    PygamParameterDict = {}
     
     global data
-    
+    data = {}
+
     RootInputDict['name']  = 'RootInputDict'
     RootOutputDict['name'] = 'RootOutputDict'
     ParameterDict['name']  = 'ParameterDict'
