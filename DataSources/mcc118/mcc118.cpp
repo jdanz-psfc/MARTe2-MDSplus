@@ -38,7 +38,7 @@ namespace MARTe
         dataBuffer = NULL_PTR(float32 *);
         actNumChannels = 0;
         cpuMask = 0;
-        gpioDevice = "/dev/gpiochip0";
+        gpioDevice = "/dev/";
         gpioPin = 0;
     }
 
@@ -167,10 +167,12 @@ namespace MARTe
             dataBuffer[i] = randVal;
 #else
             ok = mcc118_a_in_read((i < 8) ? 0 : 1, i % 8 + 1, options, &value);
-            dataBuffer[i] = (float32)value;
+//            printf("chan =  %d - value = %f\n", i, value);
+	    ok = !ok;
+	    dataBuffer[i] = (float32)value;
 #endif
         }
-        return ok;
+        return true;
     }
 
     /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
@@ -294,11 +296,16 @@ printf("CONFIGURE %d\n", actNumChannels);
             if (ok)
             {
                 //NOTE: not ParametersError
-
+                printf("about to open board 0\n");
                 ok = mcc118_open(0);
+                ok = !ok;
+		printf("\t that returned %d\n", ok);
                 if (ok && actNumChannels > 8)
                 {
+		    printf("about to open board 1\n");
                     ok = mcc118_open(1);
+                    ok = !ok;
+		    printf("\t that returned %d\n", ok);
                 }
                 if (!ok)
                 {
