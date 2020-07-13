@@ -14,6 +14,7 @@
 #ifdef MCC_EMULATE
 #include <cstdlib>
 #include <ctime>
+#include <time.h>
 #else
 #include "daqhats_utils.h"
 #include <errno.h>
@@ -122,12 +123,15 @@ namespace MARTe
     bool mcc118::Synchronise()
     {
         bool ok = true;
-
-	
+	struct timespec waitTime;
+	waitTime.tv_sec = 0;
+	waitTime.tv_nsec = 100000000;
+printf("SYNCHRONIZE\n");	
 //Wait for data; read data and copy 16 floats into dataBuffer
 #ifdef MCC_EMULATE
-        srand((unsigned int)time(NULL));
+        //srand((unsigned int)time(NULL));
         float max_emulated = 10.;
+	nanosleep(&waitTime, NULL);
 #else
         uint32_t options = OPTS_DEFAULT;
         double value;
