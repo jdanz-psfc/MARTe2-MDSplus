@@ -32,7 +32,7 @@ INCLUDES += -I$(HW_INCLUDES)
 #TODO Temporary to fix problem in mdsplus include
 CPPFLAGS += -Wno-error=sign-compare
 
-CPPFLAGS += $(EMULATE_FLAGS) $(HW_LIBS) -fPIC -DMCC_EMULATE
+CPPFLAGS += $(EMULATE_FLAGS) $(INCLUDES) -fPIC $(LIBRARIES) -DMCC_EMULATE
 
 all: $(OBJS) $(SUBPROJ) \
 	$(BUILD_DIR)/mcc118$(DLLEXT)

@@ -29,3 +29,5 @@
 export TARGET=armv8-linux
 
 include Makefile.inc
+
+LIBRARIES += -L$(MDSPLUS_DIR)/lib -lMdsObjectsCppShr
