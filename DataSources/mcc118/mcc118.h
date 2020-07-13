@@ -38,6 +38,7 @@
 #include "RegisteredMethodsMessageFilter.h"
 #include "EventSem.h"
 #include <mdsobjects.h>
+#include <time.h>
 #ifndef MCC_EMULATE
 #include <linux/gpio.h>
 #endif
@@ -181,6 +182,10 @@ namespace MARTe
                 uint32 gpioPin;
 		// for my example RP gpioDevice="gpiochip0"
                 StreamString gpioDevice;
+		uint32 counter;
+		uint32 timeUs;
+		struct timespec startTime;
+		bool firstCycle;
 #ifndef MCC_EMULATE
                 struct gpioevent_request req;
                 struct gpiohandle_data data;

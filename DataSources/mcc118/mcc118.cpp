@@ -14,7 +14,7 @@
 #ifdef MCC_EMULATE
 #include <cstdlib>
 #include <ctime>
-#include <time.h>
+
 #else
 #include "daqhats_utils.h"
 #include <errno.h>
@@ -41,6 +41,9 @@ namespace MARTe
         cpuMask = 0;
         gpioDevice = "/dev/";
         gpioPin = 0;
+	counter = 0; 
+	timeUs = 0;
+	firstCycle = true;
     }
 
     mcc118::~mcc118()
@@ -69,6 +72,8 @@ namespace MARTe
         if (ok)
         {
             /*lint -e{613} dataSourceMemory cannot be NULL here*/
+	    //int32 and float32 are of the same size, so ignore difference in type between first 
+	    //two int32 signals (counter, time) and the other float32 signals
             float32 *memPtr = &dataBuffer[signalIdx];
             signalAddress = reinterpret_cast<void *&>(memPtr);
         }
@@ -122,15 +127,29 @@ namespace MARTe
 
     bool mcc118::Synchronise()
     {
-        bool ok = true;
-	struct timespec waitTime;
-	waitTime.tv_sec = 0;
-	waitTime.tv_nsec = 100000000;
-printf("SYNCHRONIZE\n");	
+//        bool ok = true;
+       if(firstCycle)
+       {
+	   firstCycle = false;
+	   counter = 0;
+	   timeUs = 0;
+	   clock_gettime(CLOCK_REALTIME, &startTime);
+       }
+       else
+       {
+	  counter++;
+	  struct timespec currTime;
+	  clock_gettime(CLOCK_REALTIME, &currTime);
+	  timeUs = (currTime.tv_sec - startTime.tv_sec)*1000000 + (currTime.tv_nsec - startTime.tv_nsec)/1000;
+       }
+      
 //Wait for data; read data and copy 16 floats into dataBuffer
 #ifdef MCC_EMULATE
         //srand((unsigned int)time(NULL));
         float max_emulated = 10.;
+	struct timespec waitTime;
+	waitTime.tv_sec = 0;
+	waitTime.tv_nsec = 10000000;  //100 Hz in simulation
 	nanosleep(&waitTime, NULL);
 #else
         uint32_t options = OPTS_DEFAULT;
@@ -168,14 +187,16 @@ printf("SYNCHRONIZE\n");
 #ifdef MCC_EMULATE
 	    float32 randVal = float(rand()) / float((RAND_MAX)) * max_emulated;
 	    printf("%f\n", randVal);
-            dataBuffer[i] = randVal;
+            dataBuffer[i+2] = randVal;
 #else
             ok = mcc118_a_in_read((i < 8) ? 0 : 1, i % 8 + 1, options, &value);
 //            printf("chan =  %d - value = %f\n", i, value);
 	    ok = !ok;
-	    dataBuffer[i] = (float32)value;
+	    dataBuffer[2+i] = (float32)value;
 #endif
         }
+        *((int32 *)(&dataBuffer[0])) = counter;
+        *((int32 *)(&dataBuffer[1])) = timeUs;
         return true;
     }
 
@@ -227,7 +248,7 @@ printf("SYNCHRONIZE\n");
             REPORT_ERROR(ErrorManagement::ParametersError, "Signals node Missing.");
             return ok;
         }
-        actNumChannels = data.GetNumberOfChildren();
+        actNumChannels = data.GetNumberOfChildren() - 2;
         ok = (actNumChannels > 0 && actNumChannels <= 16);
         if (!ok)
         {
@@ -255,11 +276,13 @@ printf("CONFIGURE %d\n", actNumChannels);
                              auxNumberOfFunctions);
             }
         }
-        dataBuffer = reinterpret_cast<float32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(actNumChannels * sizeof(float32)));
-        memset(dataBuffer, 0, actNumChannels * sizeof(float32));
+        //Since this is a Synchronizing DataSource, MARTe expects that it provides Counter and Time int32 signals
+        //Counter records the number of iterations, Time records the number of elapsed microseconds
+        dataBuffer = reinterpret_cast<float32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(2*sizeof(int32) + actNumChannels * sizeof(float32)));
+        memset(dataBuffer, 0, 2 * sizeof(int32) + actNumChannels * sizeof(float32));
         if (ok)
         {
-            for (uint32 n = 0u; (n < actNumChannels) && ok; n++)
+            for (uint32 n = 0u; (n < actNumChannels + 2) && ok; n++)
             {
                 if (ok)
                 {
@@ -289,7 +312,10 @@ printf("CONFIGURE %d\n", actNumChannels);
                 {
                     TypeDescriptor currType;
                     currType = GetSignalType(n);
-                    ok = (currType == Float32Bit);
+		    if(n < 2)
+			ok = (currType == UnsignedInteger32Bit); //For Counter and Time (first two signals)
+		    else
+			ok = (currType == Float32Bit);
                     if (!ok)
                     {
                         REPORT_ERROR(ErrorManagement::ParametersError, "Invalid type for channel %d", n);
@@ -340,6 +366,7 @@ printf("CONFIGURE %d\n", actNumChannels);
 
 #endif
         }
+	firstCycle = true;
  printf("CONFIGURE ENDED %d\n", ok);
        return ok;
     }
