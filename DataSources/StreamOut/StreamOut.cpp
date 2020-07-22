@@ -54,12 +54,13 @@ StreamOut::StreamOut() :
         numSamples = NULL_PTR(uint32 *);
 	channelNames = NULL_PTR(StreamString *);
 	counter = 0;
-	shotNumber = 0;
+	pulseNumber = 0;
 	nOfSignals = 0;
 	timeStreaming = 1;
         numberOfBuffers = 0;
         cpuMask = 0xfu;
         stackSize = 0u;
+	sigTypes = NULL_PTR(TypeDescriptor *);
 
 }
 
@@ -83,6 +84,9 @@ StreamOut::~StreamOut() {
 
     if(numSamples != NULL_PTR(uint32 *))
       GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *& >(numSamples));
+    
+    if(sigTypes != NULL_PTR(TypeDescriptor *))
+      delete [] sigTypes;
     
 }
 
@@ -141,12 +145,11 @@ bool StreamOut::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
 bool StreamOut::Synchronise() {
     bool ok = true;
     uint32 n;
-    uint32 nOfSignals = GetNumberOfSignals();
- 
+
     if(timeStreaming)
     {
         for (n = 0u; (n < nOfSignals) && (ok); n++) {
-	    TypeDescriptor type = GetSignalType(n);
+	    TypeDescriptor type = sigTypes[n];
 	    if(type == Float32Bit)
 	    {
                for(uint32 sample = 0; sample < numSamples[n]; sample++)
@@ -188,22 +191,25 @@ bool StreamOut::Synchronise() {
         }
         bufIdx = (bufIdx + 1)%bufSamples;
         counter++;
-        if(bufIdx == 0)
+	if(bufIdx == 0)
         {
             float32 times[bufSamples*numSamples[timeIdx]];
             for(uint i = 0; i < bufSamples*numSamples[timeIdx]; i++)
-            times[i] = streamBuffers[timeIdx][i]/1E6;
+		times[i] = streamBuffers[timeIdx][i]/1E6;
        
             for (n = 0u; (n < nOfSignals) && (ok); n++) {
 	        if(n != timeIdx)
 	        {
-                    StreamString signalName;
-                    ok = GetSignalName(n, signalName);
-printf("Sending %d samples to channel %d  %s \n", bufSamples * numSamples[n],n, channelNames[n].Buffer());
-	            if (ok) MDSplus::EventStream::send(shotNumber, channelNames[n].Buffer(), bufSamples*numSamples[n], times, streamBuffers[n]);
+		   //   printf("Sending %d samples to channel %d  %s time: %f sample: %f\n", bufSamples * numSamples[n],n, channelNames[n].Buffer(), 
+//			     times[0], streamBuffers[n][0]);
+		    //  if (ok) MDSplus::EventStream::send(pulseNumber, channelNames[n].Buffer(), bufSamples*numSamples[n], times, streamBuffers[n]);
 
-	         }
+		    if(ok) streamManager.reportChannel(n,  bufSamples*numSamples[n], times, streamBuffers[n]);
+		      
+		      
+		}
              }
+             streamManager.sendAll(pulseNumber);
         } 
     }   
     else //Oscilloscope mode
@@ -259,7 +265,7 @@ printf("Sending %d samples to channel %d  %s \n", bufSamples * numSamples[n],n, 
                 StreamString signalName;
                 ok = GetSignalName(n, signalName);
 
-	        if (ok) MDSplus::EventStream::send(shotNumber, signalName.Buffer(), outIdx, times, eventBuffer, true);
+	        if (ok) MDSplus::EventStream::send(pulseNumber, signalName.Buffer(), outIdx, times, eventBuffer, true);
 	    }
 	}
 	bufIdx++;
@@ -313,10 +319,10 @@ bool StreamOut::Initialise(StructuredDataI& data) {
         REPORT_ERROR(ErrorManagement::ParametersError, "StackSize shall be > 0u");
     }
     if (ok) {
-        ok = data.Read("ShotNumber", shotNumber);
+        ok = data.Read("PulseNumber", pulseNumber);
 	if(!ok)
 	{
-	  shotNumber = 0;
+	  pulseNumber = 0;
 	  ok = true;
 	}
     }
@@ -366,8 +372,10 @@ bool StreamOut::Initialise(StructuredDataI& data) {
 	startIdx = 1; //Time signal has no channel associated
     else
 	startIdx = 0;
-    uint32 nOfSignals = data.GetNumberOfChildren();
-    channelNames = new StreamString[nOfSignals];
+    nOfSignals = data.GetNumberOfChildren();
+    streamManager.init(nOfSignals);
+
+     channelNames = new StreamString[nOfSignals];
      for (uint32 sigIdx = startIdx; sigIdx < nOfSignals; sigIdx++) {
       ok = data.MoveToChild(sigIdx);
       if(!ok) {
@@ -379,6 +387,9 @@ bool StreamOut::Initialise(StructuredDataI& data) {
 	  REPORT_ERROR(ErrorManagement::ParametersError,"Channel is missing (or is not a string) for signal %d.",sigIdx);
 	  return ok;
       }
+      
+      
+      streamManager.registerChannel(sigIdx, (char *)channelNames[sigIdx].Buffer());
       data.MoveToAncestor(1u);
     }
     data.MoveToAncestor(1u);
@@ -389,7 +400,6 @@ bool StreamOut::Initialise(StructuredDataI& data) {
 bool StreamOut::SetConfiguredDatabase(StructuredDataI& data) {
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     //Check signal properties and compute memory
-    uint32 nOfSignals = 0u;
     
     if (ok) { // Check that only one GAM is Connected to the MDSReaderNS
         uint32 auxNumberOfFunctions = GetNumberOfFunctions();
@@ -443,25 +453,25 @@ bool StreamOut::SetConfiguredDatabase(StructuredDataI& data) {
             }
         }
     }
-    TypeDescriptor *type = NULL_PTR(TypeDescriptor *);
+    sigTypes = NULL_PTR(TypeDescriptor *);
     if (ok) { //read the type specified in the configuration file 
-        type = new TypeDescriptor[nOfSignals];
+        sigTypes = new TypeDescriptor[nOfSignals];
         //lint -e{613} Possible use of null pointer. type previously allocated (see previous line).
         for (uint32 i = 0u; (i < nOfSignals) && ok; i++) {
-            type[i] = GetSignalType(i);
-            ok = !(type[i] == InvalidType);
+            sigTypes[i] = GetSignalType(i);
+            ok = !(sigTypes[i] == InvalidType);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Invalid type");
             }
 	    if (ok) { 
-	      bool cond1 = (type[i] == UnsignedInteger64Bit);
-	      bool cond2 = (type[i] == UnsignedInteger32Bit);
-	      bool cond3 = (type[i] == UnsignedInteger16Bit);
-	      bool cond4 = (type[i] == SignedInteger32Bit);
-	      bool cond5 = (type[i] == SignedInteger64Bit);
-	      bool cond6 = (type[i] == SignedInteger16Bit);
-	      bool cond7 = (type[i] == Float32Bit);
-	      bool cond8 = (type[i] == Float64Bit);
+	      bool cond1 = (sigTypes[i] == UnsignedInteger64Bit);
+	      bool cond2 = (sigTypes[i] == UnsignedInteger32Bit);
+	      bool cond3 = (sigTypes[i] == UnsignedInteger16Bit);
+	      bool cond4 = (sigTypes[i] == SignedInteger32Bit);
+	      bool cond5 = (sigTypes[i] == SignedInteger64Bit);
+	      bool cond6 = (sigTypes[i] == SignedInteger16Bit);
+	      bool cond7 = (sigTypes[i] == Float32Bit);
+	      bool cond8 = (sigTypes[i] == Float64Bit);
 	      ok = cond1 || cond2 || cond3 || cond4 || cond5 || cond6 || cond7 || cond8;
 	      if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported type. Possible time types are: uint64, int64, uin32 or int32\n");
@@ -511,7 +521,7 @@ bool StreamOut::SetConfiguredDatabase(StructuredDataI& data) {
         offsets = new uint32[nOfSignals];
 	//Count the number of bytes
         uint32 totalSignalMemory = 0u;
-        if (type != NULL_PTR(TypeDescriptor *)) {
+        if (sigTypes != NULL_PTR(TypeDescriptor *)) {
             if ((offsets != NULL_PTR(uint32 *)) ) {
 	      
                 for (uint32 i = 0u; (i < nOfSignals) && ok; i++) {
@@ -533,14 +543,12 @@ bool StreamOut::SetConfiguredDatabase(StructuredDataI& data) {
         else {
           ok = false;
 	  }
-	delete [] type;
         //Allocate memory
 	if (ok) {
 	   dataSourceMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(totalSignalMemory));
 	}
     }
     bufIdx = 0;
-
 
 
     return ok;

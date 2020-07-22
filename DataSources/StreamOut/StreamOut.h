@@ -36,6 +36,7 @@
 #include "MemoryMapAsyncOutputBroker.h"
 #include "MessageI.h"
 #include "RegisteredMethodsMessageFilter.h"
+#include <mdsobjects.h>
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -44,6 +45,106 @@ namespace MARTe {
 /**
  
  * */
+#define MDSPLUS_STREAM_OUT_MAX_SAMPLES 512
+//Support class for packing channels
+class StreamManager
+{
+    struct  BufDescr { 
+      uint32 nSamples;
+      float32 *samples;
+      float32 *times;
+      BufDescr *nxt;
+    };
+    struct HeadDescr {
+      char * chanName;
+      BufDescr *bufs;
+    };
+    
+    HeadDescr *heads;
+    BufDescr *buffers;
+    uint32 numStreams;
+    uint32 nChans;
+    float totTimes[MDSPLUS_STREAM_OUT_MAX_SAMPLES], totSamples[MDSPLUS_STREAM_OUT_MAX_SAMPLES];
+    
+public:
+    StreamManager()
+    {
+        numStreams = 0;
+	nChans = 0;
+	heads = NULL_PTR(HeadDescr *);
+	buffers = NULL_PTR(BufDescr *);
+    }
+    ~StreamManager()
+    {
+	if (heads != NULL_PTR(HeadDescr *)) {
+	    GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(heads));
+	}
+	if(nChans > 0)
+	{
+	   GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(buffers));
+	}
+    }
+    void init(uint32 nChans)
+    {
+ 	numStreams = 0;
+	this->nChans = nChans;
+	heads = reinterpret_cast<HeadDescr *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nChans * sizeof(HeadDescr)));
+	buffers = reinterpret_cast<BufDescr *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nChans * sizeof(BufDescr)));
+    }
+    void registerChannel(uint32 channelIdx, char *chanName)
+    {
+        uint32 streamIdx;
+        for (streamIdx = 0; streamIdx < numStreams && strcmp(heads[streamIdx].chanName, chanName); streamIdx++);
+	if(streamIdx == numStreams)
+	{
+	    heads[streamIdx].bufs = &buffers[channelIdx];
+	    heads[streamIdx].chanName = new char[strlen(chanName)+1];
+	    strcpy(heads[streamIdx].chanName, chanName);
+	    buffers[channelIdx].nxt = 0;
+	    numStreams++;
+	}
+	else
+	{
+	    BufDescr *currBuf;
+	    for(currBuf = heads[streamIdx].bufs; currBuf->nxt; currBuf = currBuf->nxt);
+	    currBuf->nxt = &buffers[channelIdx];
+	    buffers[channelIdx].nxt = 0;
+	}
+    }
+    
+    void reportChannel(uint32 channelIdx, uint32 nSamples, float32 *times, float32 *samples)
+    {
+	buffers[channelIdx].nSamples = nSamples;
+	buffers[channelIdx].times = times;
+	buffers[channelIdx].samples = samples;
+    }
+    
+    void sendAll(int shotNumber)
+    {
+	int currSamples;
+	for (uint32 streamIdx = 0; streamIdx < numStreams; streamIdx++)
+	{
+	    currSamples = 0;
+	    for(BufDescr *currBuf = heads[streamIdx].bufs; currBuf; currBuf = currBuf->nxt)
+	    {
+		for(uint32 currIdx = 0; currIdx < currBuf->nSamples; currIdx++)
+		{
+		    if(currSamples < MDSPLUS_STREAM_OUT_MAX_SAMPLES)
+		    {
+			totTimes[currSamples] = currBuf->times[currIdx];
+			totSamples[currSamples] = currBuf->samples[currIdx];
+			currSamples++;
+		    }
+		}
+	    }
+	    MDSplus::EventStream::send(shotNumber, heads[streamIdx].chanName, currSamples, totTimes, totSamples);
+	}
+    }
+};
+
+
+
+
 class StreamOut: public DataSourceI, public MessageI {
 public:
     CLASS_REGISTER_DECLARATION()
@@ -184,12 +285,15 @@ private:
     uint32 bufIdx;
     uint32 numChannels;
     float32 **streamBuffers;
-    uint32 shotNumber;
+    uint32 pulseNumber;
     uint32 timeIdx; //Index of time input signal
     uint8 timeStreaming; //If false all the elements of the signals will be displayed at every cycle (Oscilloscope)
     uint32 *numElements; //Valid only if not timeStreaming
     uint32 *numSamples; //Valid only if TimeStreaming
     StreamString *channelNames;
+    TypeDescriptor *sigTypes;
+    StreamManager streamManager;
+    
 };
 }
 
