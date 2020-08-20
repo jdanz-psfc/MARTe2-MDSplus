@@ -6,13 +6,13 @@ from copy import *
 
 pygam.RootInputDict = {
         'types'      : ( np.float32, ),
-        'dimensions' : ( (16, 1),  ),
+        'dimensions' : ( (1, 16),  ),
         'names'      : ( 'Input',   )
         }
 
 pygam.RootOutputDict = {
         'types'      : ( np.float32, ),
-        'dimensions' : ( (16, 1),     ),
+        'dimensions' : ( (1, 16),     ),
         'names'      : ( 'Output',        )
         }
 
