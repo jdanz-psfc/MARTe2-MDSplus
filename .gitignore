@@ -1,0 +1,3 @@
+trees/*
+*.pyc
+__pycache__*
