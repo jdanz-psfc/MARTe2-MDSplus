@@ -26,10 +26,23 @@ pygam.ParameterDict = {
 # --- MAIN FUNCTION ---
 
 
+import board
+import busio
+import adafruit_pca9685
 def setup():
+    global freq, actChans, hat
+    i2c = busio.I2C(board.SCL, board.SDA)
+    hat = adafruit_pca9685.PCA9685(i2c)
     freq = pygam.data['Frequency']    
     actChans = pygam.data['ActChans']   
+    hat.frequency = freq
 
 def execute(x):
-    print(str(x))
+    print('in execute')
+    print(actChans)
+    print(x)
+    for chan in range(int(actChans)):
+        value = int(min(max(x[chan], 0), 1)*65535)
+        print('setting PWM channel %d to %d' % (chan, value))
+        hat.channels[chan].duty_cycle=value
     return x,
