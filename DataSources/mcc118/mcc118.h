@@ -182,6 +182,9 @@ namespace MARTe
                 uint32 gpioPin;
 		// for my example RP gpioDevice="gpiochip0"
                 StreamString gpioDevice;
+		// so that they do not have to be numbered 0 and 1
+		uint32 board0;
+		uint32 board1;
 		uint32 counter;
 		uint32 timeUs;
 		struct timespec startTime;

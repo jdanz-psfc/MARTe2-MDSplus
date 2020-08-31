@@ -189,7 +189,7 @@ namespace MARTe
 	    printf("%f\n", randVal);
             dataBuffer[i+2] = randVal;
 #else
-            ok = mcc118_a_in_read((i < 8) ? 0 : 1, i % 8 + 1, options, &value);
+            ok = mcc118_a_in_read((i < 8) ? board0 : board1, i % 8 + 1, options, &value);
 //            printf("chan =  %d - value = %f\n", i, value);
 	    ok = !ok;
 	    dataBuffer[2+i] = (float32)value;
@@ -233,6 +233,28 @@ namespace MARTe
         else
         {
             gpioPin = gpioPinIn;
+        }
+
+        uint32 board0In;
+        ok = data.Read("board0", board0In);
+        if (!ok)
+        {
+            board0 = 0;
+        }
+        else
+        {
+            board0 = board0In;
+        }
+
+        uint32 board1In;
+        ok = data.Read("board1", board1In);
+        if (!ok)
+        {
+            board1 = 1;
+        }
+        else
+        {
+            board1 = board1In;
         }
 
         ok = data.Read("GPIODevice", gpioDevice);
@@ -327,13 +349,13 @@ printf("CONFIGURE %d\n", actNumChannels);
             {
                 //NOTE: not ParametersError
                 printf("about to open board 0\n");
-                ok = mcc118_open(0);
+                ok = mcc118_open(board0);
                 ok = !ok;
 		printf("\t that returned %d\n", ok);
                 if (ok && actNumChannels > 8)
                 {
 		    printf("about to open board 1\n");
-                    ok = mcc118_open(1);
+                    ok = mcc118_open(board1);
                     ok = !ok;
 		    printf("\t that returned %d\n", ok);
                 }
