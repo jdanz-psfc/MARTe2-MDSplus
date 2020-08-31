@@ -498,7 +498,7 @@ bool SimulinkInterfaceGAM::Setup() {
 			REPORT_ERROR(ErrorManagement::ParametersError,
 						 "Input no. (%i): dimension mismatch. Model: (%i), GAM: (%i)",
 						 i+1, modelNumOfDims, gamNumOfDims);
-			return false;
+			//return false;
 			
 		}
 		
