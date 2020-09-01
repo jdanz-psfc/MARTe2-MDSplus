@@ -127,7 +127,7 @@ namespace MARTe
 
     bool mcc118::Synchronise()
     {
-//        bool ok = true;
+       bool ok = true;
        if(firstCycle)
        {
 	   firstCycle = false;
@@ -179,8 +179,8 @@ namespace MARTe
                          "GPIO Event returned wrong amount of data %d != %d", ret, sizeof(event));
             return false;
         }
-//        fprintf(stdout, "GPIO EVENT %llu: ", event.timestamp);
-//        if (event.id == GPIOEVENT_EVENT_RISING_EDGE) {
+        fprintf(stdout, "GPIO EVENT %llu: ", event.timestamp);
+        if (event.id == GPIOEVENT_EVENT_RISING_EDGE) {
 #endif
         for (uint32_t i = 0; i < actNumChannels; i++)
         {
@@ -189,14 +189,15 @@ namespace MARTe
 	    printf("%f\n", randVal);
             dataBuffer[i+2] = randVal;
 #else
-            ok = mcc118_a_in_read((i < 8) ? board0 : board1, i % 8 + 1, options, &value);
-//            printf("chan =  %d - value = %f\n", i, value);
+            ok = mcc118_a_in_read((i < 8) ? board0 : board1, i % 8, options, &value);
+            printf("chan =  %d - value = %f\n", i, value);
 	    ok = !ok;
 	    dataBuffer[2+i] = (float32)value;
 #endif
         }
         *((int32 *)(&dataBuffer[0])) = counter;
         *((int32 *)(&dataBuffer[1])) = timeUs;
+        }
         return true;
     }
 

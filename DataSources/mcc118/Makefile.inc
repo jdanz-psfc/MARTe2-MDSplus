@@ -32,10 +32,15 @@ INCLUDES += -I$(HW_INCLUDES)
 #TODO Temporary to fix problem in mdsplus include
 CPPFLAGS += -Wno-error=sign-compare
 
-CPPFLAGS += $(EMULATE_FLAGS) $(INCLUDES) -fPIC $(LIBRARIES) -DMCC_EMULATE
+LIBRARIES +=$(HW_LIBRARIES)
+
+CPPFLAGS += $(EMULATE_FLAGS) $(INCLUDES) -fPIC $(LIBRARIES)
+
+LDFLAGS += $(LIBRARIES)
 
 all: $(OBJS) $(SUBPROJ) \
 	$(BUILD_DIR)/mcc118$(DLLEXT)
 	    echo  $(OBJS)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
+
