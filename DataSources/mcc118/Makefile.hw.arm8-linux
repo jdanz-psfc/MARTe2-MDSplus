@@ -29,6 +29,6 @@
 export TARGET=armv8-linux
 
 HW_INCLUDES = /home/pi/daqhats/examples/c
-LIBRARIES +=  "-L/home/pi/daqhats/lib/build/ -ldaqhats"
+HW_LIBRARIES = -L/home/pi/daqhats/lib/build/ -ldaqhats
 
 include Makefile.inc
