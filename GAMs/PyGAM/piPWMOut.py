@@ -6,13 +6,13 @@ from copy import *
 
 pygam.RootInputDict = {
         'types'      : ( np.float32, ),
-        'dimensions' : ( (1, 16),  ),
+        'dimensions' : ( (1, 1),  ),
         'names'      : ( 'Input',   )
         }
 
 pygam.RootOutputDict = {
         'types'      : ( np.float32, ),
-        'dimensions' : ( (1, 16),     ),
+        'dimensions' : ( (1, 1),     ),
         'names'      : ( 'Output',        )
         }
 
@@ -42,7 +42,11 @@ def execute(x):
     print(actChans)
     print(x)
     for chan in range(int(actChans)):
-        value = int(min(max(x[chan], 0), 1)*65535)
+        value = min(1., max(x[chan], 0.)) * 65535
+        print('value is %f'%value)
+        value = int(value)
         print('setting PWM channel %d to %d' % (chan, value))
         hat.channels[chan].duty_cycle=value
+    print(x)
+    print(x.__class__)
     return x,
