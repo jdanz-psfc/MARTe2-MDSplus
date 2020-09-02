@@ -128,11 +128,20 @@ namespace MARTe
     bool mcc118::Synchronise()
     {
        bool ok = true;
+       int32_t ret = 0;
+       struct gpioevent_data event;
+
        if(firstCycle)
        {
 	   firstCycle = false;
 	   counter = 0;
 	   timeUs = 0;
+           int flags = fcntl(fd, F_GETFL, 0);
+           fcntl(req.fd, F_SETFL, flags | O_NONBLOCK);
+           while (ret != -1) {
+             ret = read(req.fd, &event, sizeof(event));
+           }
+           fcntl(req.fd, F_SETFL, flags);
 	   clock_gettime(CLOCK_REALTIME, &startTime);
        }
        else
@@ -154,8 +163,6 @@ namespace MARTe
 #else
         uint32_t options = OPTS_DEFAULT;
         double value;
-        struct gpioevent_data event;
-        int32_t ret;
         ret = read(req.fd, &event, sizeof(event));
         if (ret == -1)
         {
