@@ -40,6 +40,7 @@ StreamIn::StreamIn() :
 	eventSem.Create();
 	mutexSem.Create();
 	numberOfBuffers = 0;
+	started = false;
 
 }
 
@@ -133,6 +134,7 @@ bool StreamIn::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* co
 }
 
 bool StreamIn::Synchronise() {
+    started = true;
     bool ok = true;
     uint32 n;
     uint32 nOfSignals = GetNumberOfSignals();
@@ -201,7 +203,7 @@ bool StreamIn::PrepareNextState(const char8* const currentStateName, const char8
 }
 
 bool StreamIn::Initialise(StructuredDataI& data) {
-
+    started = false;
     bool ok = DataSourceI::Initialise(data);
     if (ok) {
         ok = data.Read("NumberOfBuffers", numberOfBuffers);
@@ -279,6 +281,7 @@ bool StreamIn::Initialise(StructuredDataI& data) {
 }
 
 bool StreamIn::SetConfiguredDatabase(StructuredDataI& data) {
+    started = false;
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     //Check signal properties and compute memory
     uint32 nOfSignals = 0u;  
@@ -406,7 +409,7 @@ bool StreamIn::SetConfiguredDatabase(StructuredDataI& data) {
     streamListeners = reinterpret_cast<StreamListener **>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(StreamListener *)));
 
     for (uint32 sigIdx = 0; sigIdx < nOfSignals - 1; sigIdx++) {
-	streamListeners[sigIdx] = new StreamListener(sigIdx, streamBuffers, bufIdxs, lastBufIdxs, bufElements, &eventSem, &mutexSem, numberOfBuffers);
+	streamListeners[sigIdx] = new StreamListener(sigIdx, streamBuffers, bufIdxs, lastBufIdxs, bufElements, &eventSem, &mutexSem, numberOfBuffers, &started);
 
 	evStream.registerListener(streamListeners[sigIdx], channelNames[sigIdx].Buffer());
 	evStream.start();
@@ -428,6 +431,7 @@ uint32 StreamIn::GetNumberOfBuffers() const {
 
 void StreamListener::dataReceived(MDSplus::Data *samples, MDSplus::Data *times, int shot)
 {
+    if(!*started) return;
     if(bufElements[signalIdx] > 1)
     {
 	std::vector<float> bufArr;
