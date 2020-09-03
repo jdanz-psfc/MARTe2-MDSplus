@@ -443,9 +443,23 @@ std::cout << "Received  " << samples << std::endl;
 	}	    
 	
 	mutexSem->FastLock();
-	for (uint32 el = 0; el < bufArr.size(); el++)
+	uint32 actSize = bufArr.size();
+	if(actSize > bufElements[signalIdx])
+	    actSize = bufElements[signalIdx];
+	for (uint32 el = 0; el < actSize; el++)
 	{
 	    streamBuffers[signalIdx][lastBufIdxs[signalIdx]] = bufArr[el];
+	    lastBufIdxs[signalIdx] += 1;
+	    if(lastBufIdxs[signalIdx] >= nOfBuffers * bufElements[signalIdx])
+		lastBufIdxs[signalIdx] = 0;
+	    if(lastBufIdxs[signalIdx] == bufIdxs[signalIdx])
+	    {
+	        printf("Overflow receiving data for channel %d",signalIdx);
+	    }
+	}
+	for (uint32 el = actSize; el < bufElements[signalIdx]; el++)
+	{
+	    streamBuffers[signalIdx][lastBufIdxs[signalIdx]] = 0;
 	    lastBufIdxs[signalIdx] += 1;
 	    if(lastBufIdxs[signalIdx] >= nOfBuffers * bufElements[signalIdx])
 		lastBufIdxs[signalIdx] = 0;
