@@ -6,13 +6,13 @@ from copy import *
 
 pygam.RootInputDict['piPWMOut']= {
         'types'      : ( np.float32, ),
-        'dimensions' : ( (1, 1),  ),
+        'dimensions' : ( (1, 16),  ),
         'names'      : ( 'Input',   )
         }
 
 pygam.RootOutputDict['piPWMOut'] = {
         'types'      : ( np.float32, ),
-        'dimensions' : ( (1, 1),     ),
+        'dimensions' : ( (1, 16),     ),
         'names'      : ( 'Output',        )
         }
 
