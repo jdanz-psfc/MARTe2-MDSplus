@@ -77,7 +77,9 @@ void sig_handler(int signo)
 }
 
 bool PyGAM::Initialise(StructuredDataI & data) {
-	
+
+ 	// Runs the Python initialize() function.
+  
 	bool ok = GAM::Initialise(data);
 	
 	// These are needed later
@@ -112,6 +114,8 @@ bool PyGAM::Initialise(StructuredDataI & data) {
 					 "Error while reading FileName leaf from configuration file. Was it defined?");
 		return ok;
 	}
+	
+ 	pModuleName = PyUnicode_FromString(fileName.Buffer());
 	
 	// Loading Python interpreter.
 	Py_InitializeEx(0);
@@ -171,8 +175,8 @@ bool PyGAM::Initialise(StructuredDataI & data) {
 		goto error;
 	}
 	
-	// Runs the Python initialize() function.
-	pValue = PyObject_CallFunctionObjArgs(pFunc, NULL);
+	
+	pValue = PyObject_CallFunctionObjArgs(pFunc, pModuleName, NULL);
 	ok = (pValue != NULL);
 	if (!ok) {
 		REPORT_ERROR(ErrorManagement::Exception,
@@ -186,7 +190,11 @@ bool PyGAM::Initialise(StructuredDataI & data) {
 	ok = (pFunc && PyCallable_Check(pFunc));
 	if (!ok) goto error;
 	
-	pValue = PyObject_CallObject(pFunc, NULL);
+//	pValue = PyObject_CallObject(pFunc, NULL);
+
+	pValue = PyObject_CallFunctionObjArgs(pFunc, pModuleName, NULL);
+
+
 	ok = (pValue != NULL);
 	if (!ok) goto error;
 	
@@ -198,7 +206,9 @@ bool PyGAM::Initialise(StructuredDataI & data) {
 	ok = (pFunc && PyCallable_Check(pFunc));
 	if (!ok) goto error;
 	
-	pValue = PyObject_CallObject(pFunc, NULL);
+//	pValue = PyObject_CallObject(pFunc, pModuleName, NULL);
+	pValue = PyObject_CallFunctionObjArgs(pFunc, pModuleName, NULL);
+
 	ok = (pValue != NULL);
 	if (!ok) goto error;
 	
@@ -210,7 +220,8 @@ bool PyGAM::Initialise(StructuredDataI & data) {
 	ok = (pFunc && PyCallable_Check(pFunc));
 	if (!ok) goto error;
 	
-	pValue = PyObject_CallObject(pFunc, NULL);
+//	pValue = PyObject_CallObject(pFunc, NULL);
+	pValue = PyObject_CallFunctionObjArgs(pFunc, pModuleName, NULL);
 	ok = (pValue != NULL);
 	if (!ok) goto error;
 	
@@ -222,9 +233,9 @@ bool PyGAM::Initialise(StructuredDataI & data) {
 	pyParameterStruct = new PyArgumentStruct[pyNumOfParameters];
 	
 	// Argument datatypes
-	ok = pyInputStruct->GetTypes(PyArgInputs, pyNumOfInputs, pygamModule);
-	if (ok) ok = pyOutputStruct->GetTypes(PyArgOutputs, pyNumOfOutputs, pygamModule);
-	if (ok) ok = pyParameterStruct->GetTypes(PyArgParameters, pyNumOfParameters, pygamModule);
+	ok = pyInputStruct->GetTypes(PyArgInputs, pyNumOfInputs, pygamModule, pModuleName);
+	if (ok) ok = pyOutputStruct->GetTypes(PyArgOutputs, pyNumOfOutputs, pygamModule, pModuleName);
+	if (ok) ok = pyParameterStruct->GetTypes(PyArgParameters, pyNumOfParameters, pygamModule, pModuleName);
 	if (!ok) {
 		REPORT_ERROR(ErrorManagement::Exception,
 					 "GetTypes failed.");
@@ -232,9 +243,9 @@ bool PyGAM::Initialise(StructuredDataI & data) {
 	}
 	
 	// Argument dimensions
-	ok = pyInputStruct->GetDimensions(PyArgInputs, pyNumOfInputs, pygamModule);
-	if (ok) ok = pyOutputStruct->GetDimensions(PyArgOutputs, pyNumOfOutputs, pygamModule);
-	if (ok) ok = pyParameterStruct->GetDimensions(PyArgParameters, pyNumOfParameters, pygamModule);
+	ok = pyInputStruct->GetDimensions(PyArgInputs, pyNumOfInputs, pygamModule, pModuleName);
+	if (ok) ok = pyOutputStruct->GetDimensions(PyArgOutputs, pyNumOfOutputs, pygamModule, pModuleName);
+	if (ok) ok = pyParameterStruct->GetDimensions(PyArgParameters, pyNumOfParameters, pygamModule, pModuleName);
 	if (!ok) {
 		REPORT_ERROR(ErrorManagement::Exception,
 					 "GetDimensions failed.");
@@ -242,9 +253,9 @@ bool PyGAM::Initialise(StructuredDataI & data) {
 	}
 	
 	// Argument names
-	ok = pyInputStruct->GetNames(PyArgInputs, pyNumOfInputs, pygamModule);
-	if (ok) ok = pyOutputStruct->GetNames(PyArgOutputs, pyNumOfOutputs, pygamModule);
-	if (ok) ok = pyParameterStruct->GetNames(PyArgParameters, pyNumOfParameters, pygamModule);
+	ok = pyInputStruct->GetNames(PyArgInputs, pyNumOfInputs, pygamModule, pModuleName);
+	if (ok) ok = pyOutputStruct->GetNames(PyArgOutputs, pyNumOfOutputs, pygamModule, pModuleName);
+	if (ok) ok = pyParameterStruct->GetNames(PyArgParameters, pyNumOfParameters, pygamModule, pModuleName);
 	if (!ok) {
 		REPORT_ERROR(ErrorManagement::Exception,
 					 "GetNames failed.");

@@ -44,7 +44,7 @@
 
 namespace MARTe {
 
-bool PyArgumentStruct::GetTypes(PyArgumentDirection direction, uint32 numberOfArgs, PyObject* pythonModule) {
+bool PyArgumentStruct::GetTypes(PyArgumentDirection direction, uint32 numberOfArgs, PyObject* pythonModule, PyObject *moduleName) {
 	
 	bool ok = false;
 	PyObject* pFunc;
@@ -68,7 +68,7 @@ bool PyArgumentStruct::GetTypes(PyArgumentDirection direction, uint32 numberOfAr
 		if (!ok) return ok;
 									
 		PyObject* pIndex = PyLong_FromLong(argIdx);
-		this[argIdx].pyType = PyObject_CallFunctionObjArgs(pFunc, pIndex, NULL);
+		this[argIdx].pyType = PyObject_CallFunctionObjArgs(pFunc, moduleName, pIndex, NULL);
 		ok=(this[argIdx].pyType != NULL);
 		
 		if (!ok) return ok;
@@ -86,7 +86,7 @@ bool PyArgumentStruct::GetTypes(PyArgumentDirection direction, uint32 numberOfAr
 	
 } // GetTypes
 
-bool PyArgumentStruct::GetDimensions(PyArgumentDirection direction, uint32 numberOfArgs, PyObject* pythonModule) {
+bool PyArgumentStruct::GetDimensions(PyArgumentDirection direction, uint32 numberOfArgs, PyObject* pythonModule, PyObject *moduleName) {
 	
 	bool ok = false;
 	StreamString directionString;
@@ -115,7 +115,7 @@ bool PyArgumentStruct::GetDimensions(PyArgumentDirection direction, uint32 numbe
 		ok = (pFunc && PyCallable_Check(pFunc));
 		if (!ok) return ok; //TODO not working, replace with "goto error"
 		
-		pValue = PyObject_CallFunctionObjArgs(pFunc, PyLong_FromLong(argIdx), NULL);
+		pValue = PyObject_CallFunctionObjArgs(pFunc, moduleName, PyLong_FromLong(argIdx), NULL);
 		
 		this[argIdx].numberOfDimensions = PyLong_AsLong(pValue);
 		
@@ -135,7 +135,7 @@ bool PyArgumentStruct::GetDimensions(PyArgumentDirection direction, uint32 numbe
 		ok = (pFunc && PyCallable_Check(pFunc));
 		if (!ok) return ok; //TODO not working, replace with "goto error"
 		
-		pValue = PyObject_CallFunctionObjArgs(pFunc, PyLong_FromLong(argIdx), NULL);
+		pValue = PyObject_CallFunctionObjArgs(pFunc, moduleName, PyLong_FromLong(argIdx), NULL);
 		
 		PyObject* temp = PyTuple_GetItem(pValue, 0);
 		this[argIdx].dimensions[0] = PyLong_AsLong(temp);
@@ -160,7 +160,7 @@ bool PyArgumentStruct::GetDimensions(PyArgumentDirection direction, uint32 numbe
 	
 } // GetDimensions
 
-bool PyArgumentStruct::GetNames(PyArgumentDirection direction, uint32 numberOfArgs, PyObject* pythonModule) {
+bool PyArgumentStruct::GetNames(PyArgumentDirection direction, uint32 numberOfArgs, PyObject* pythonModule, PyObject *moduleName) {
 	
 	bool ok = false;
 	StreamString directionString;
@@ -189,7 +189,7 @@ bool PyArgumentStruct::GetNames(PyArgumentDirection direction, uint32 numberOfAr
 		ok = (pFunc && PyCallable_Check(pFunc));
 		if (!ok) return ok; //TODO not working, replace with "goto error"
 		
-		pValue = PyObject_CallFunctionObjArgs(pFunc, PyLong_FromLong(argIdx), NULL);
+		pValue = PyObject_CallFunctionObjArgs(pFunc, moduleName, PyLong_FromLong(argIdx), NULL);
 		
 		this[argIdx].name = PyUnicode_AsUTF8(pValue);
 		

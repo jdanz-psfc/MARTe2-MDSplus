@@ -4,19 +4,19 @@ from copy import *
 
 # --- CODE INFO ---
 
-pygam.RootInputDict = {
+pygam.RootInputDict['piPWMOut']= {
         'types'      : ( np.float32, ),
         'dimensions' : ( (1, 1),  ),
         'names'      : ( 'Input',   )
         }
 
-pygam.RootOutputDict = {
+pygam.RootOutputDict['piPWMOut'] = {
         'types'      : ( np.float32, ),
         'dimensions' : ( (1, 1),     ),
         'names'      : ( 'Output',        )
         }
 
-pygam.ParameterDict = {
+pygam.ParameterDict['piPWMOut'] = {
         'types'        : ( np.int32, np.int32 ), 
         'dimensions'   : ( (1,1),  (1,1)  ),
         'names'        : ( 'Frequency',  'ActChans',),

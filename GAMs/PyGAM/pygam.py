@@ -9,10 +9,13 @@ global PygamParameterDict
 global data
 
 data = {}
+RootInputDict = {}
+RootOutputDict = {}
+ParameterDict = {}
 
 def dictionaryLayoutCheck(InfoDict):
     for key in InfoDict:
-        if key not in ("types", "dimensions", "names", "name", "defaultValues"):
+        if key not in ("types", "numberOfDimensions", "dimensions", "names", "name", "defaultValues"):
             raise Exception("\'" + key + "\' key in " + InfoDict['name'] + " is not allowed.")
         if key == "defaultValues" and InfoDict['name'] != 'ParameterDict':
             raise Exception("\'defaultValues\' key is allowed only in parameterDict, and not in " + InfoDict['name'] + ".")
@@ -90,45 +93,50 @@ def defaulValueFormatCheck(InfoDict):
                         raise Exception("Error in " + InfoDict['name'] + "['defaulValues'][" + str(idx) + "]: list entries must be either integer of float.")
                 
 
-def initialize():
+def initialize(moduleName):
     
     global PygamRootInputDict
     global PygamRootOutputDict
     global PygamParameterDict
 
-    PygamRootInputDict = {}
-    PygamRootOutputDict = {}
-    PygamParameterDict = {}
+
+#    PygamRootInputDict = {}
+#    PygamRootOutputDict = {}
+#    PygamParameterDict = {}
     
     global data
     data = {}
 
-    RootInputDict['name']  = 'RootInputDict'
-    RootOutputDict['name'] = 'RootOutputDict'
-    ParameterDict['name']  = 'ParameterDict'
+    RootInputDict[moduleName]['name']  = 'RootInputDict'
+    RootOutputDict[moduleName]['name'] = 'RootOutputDict'
+    ParameterDict[moduleName]['name']  = 'ParameterDict'
     
     dictTuple = (RootInputDict, RootOutputDict, ParameterDict)
     
     for argDict in dictTuple:
-        dictionaryLayoutCheck(argDict)
-        tupleCheck(argDict)
-        numberFormatCheck(argDict)
-        typeFormatCheck(argDict)
-        dimensionFormatCheck(argDict)
-        nameFormatCheck(argDict)
+        dictionaryLayoutCheck(argDict[moduleName])
+        tupleCheck(argDict[moduleName])
+        numberFormatCheck(argDict[moduleName])
+        typeFormatCheck(argDict[moduleName])
+        dimensionFormatCheck(argDict[moduleName])
+        nameFormatCheck(argDict[moduleName])
     
     # parameter default value checks
-    defaulValueFormatCheck(ParameterDict)
+    defaulValueFormatCheck(ParameterDict[moduleName])
     
     # data dictionary creation
-    for paramIdx, paramName in enumerate(ParameterDict['names']):
-        data[paramName] = numpy.array(ParameterDict['defaultValues'][paramIdx])
+    for paramIdx, paramName in enumerate(ParameterDict[moduleName]['names']):
+        data[paramName] = numpy.array(ParameterDict[moduleName]['defaultValues'][paramIdx])
     
     # values from the custom Python code are imported here
-    PygamRootInputDict  = RootInputDict
-    PygamRootOutputDict = RootOutputDict
-    PygamParameterDict  = ParameterDict
-            
+    try:
+        PygamRootInputDict[moduleName]  = RootInputDict[moduleName]
+        PygamRootOutputDict[moduleName] = RootOutputDict[moduleName]
+        PygamParameterDict[moduleName]  = ParameterDict[moduleName]
+    except:
+        PygamRootInputDict = {moduleName :  RootInputDict[moduleName]}
+        PygamRootOutputDict = {moduleName :  RootOutputDict[moduleName]}
+        PygamParameterDict = {moduleName :  ParameterDict[moduleName]}
     return 1
     
 # --- APIs ---
@@ -141,118 +149,118 @@ def getNumberOfArguments(InfoDict):
     
     return len(InfoDict['types'])
 
-def getNumberOfInputs():
+def getNumberOfInputs(moduleName):
     
-    return getNumberOfArguments(PygamRootInputDict)
+    return getNumberOfArguments(PygamRootInputDict[moduleName])
 
-def getNumberOfOutputs():
+def getNumberOfOutputs(moduleName):
     
-    return getNumberOfArguments(PygamRootOutputDict)
+    return getNumberOfArguments(PygamRootOutputDict[moduleName])
 
-def getNumberOfParameters():
+def getNumberOfParameters(moduleName):
     
-    return getNumberOfArguments(PygamParameterDict)
+    return getNumberOfArguments(PygamParameterDict[moduleName])
 
 # -- argument types
-def getInputType(sigIdx):
+def getInputType(moduleName, sigIdx):
     
-    return PygamRootInputDict['types'][sigIdx]
+    return PygamRootInputDict[moduleName]['types'][sigIdx]
     
-def getOutputType(sigIdx):
+def getOutputType(moduleName, sigIdx):
     
-    return PygamRootOutputDict['types'][sigIdx]
+    return PygamRootOutputDict[moduleName]['types'][sigIdx]
 
-def getParameterType(param):
+def getParameterType(moduleName, param):
     
     if isinstance(param, int):
         paramIdx = param
     
     elif isinstance(param, str):
         try:
-            paramIdx = PygamParameterDict['names'].index(param)
+            paramIdx = PygamParameterDict[moduleName]['names'].index(param)
         except:
             raise Exception(param + ' not found.')
     
-    return PygamParameterDict['types'][paramIdx]
+    return PygamParameterDict[moduleName]['types'][paramIdx]
 
 # -- argument number of dimensions
-def getInputNumberOfDimensions(sigIdx):
+def getInputNumberOfDimensions(moduleName, sigIdx):
     
-    return PygamRootInputDict['numberOfDimensions'][sigIdx]
+    return PygamRootInputDict[moduleName]['numberOfDimensions'][sigIdx]
 
-def getOutputNumberOfDimensions(sigIdx):
+def getOutputNumberOfDimensions(moduleName, sigIdx):
     
-    return PygamRootOutputDict['numberOfDimensions'][sigIdx]
+    return PygamRootOutputDict[moduleName]['numberOfDimensions'][sigIdx]
 
-def getParameterNumberOfDimensions(param):
+def getParameterNumberOfDimensions(moduleName,param):
     
     if isinstance(param, int):
         paramIdx = param
     
     elif isinstance(param, str):
         try:
-            paramIdx = PygamParameterDict['names'].index(param)
+            paramIdx = PygamParameterDict[moduleName]['names'].index(param)
         except:
             raise Exception(param + ' not found.')
     
-    return PygamParameterDict['numberOfDimensions'][paramIdx]
+    return PygamParameterDict[moduleName]['numberOfDimensions'][paramIdx]
 
 # -- argument dimensions
-def getInputDimensions(sigIdx):
+def getInputDimensions(moduleName,sigIdx):
     
-    return PygamRootInputDict['dimensions'][sigIdx]
+    return PygamRootInputDict[moduleName]['dimensions'][sigIdx]
 
-def getOutputDimensions(sigIdx):
+def getOutputDimensions(moduleName,sigIdx):
     
-    return PygamRootOutputDict['dimensions'][sigIdx]
+    return PygamRootOutputDict[moduleName]['dimensions'][sigIdx]
 
-def getParameterDimensions(param):
+def getParameterDimensions(moduleName,param):
     
     if isinstance(param, int):
         paramIdx = param
     
     elif isinstance(param, str):
         try:
-            paramIdx = PygamParameterDict['names'].index(param)
+            paramIdx = PygamParameterDict[moduleName]['names'].index(param)
         except:
             raise Exception(param + ' not found.')
     
-    return PygamParameterDict['dimensions'][paramIdx]
+    return PygamParameterDict[moduleName]['dimensions'][paramIdx]
 
 # -- argument names
-def getInputName(sigIdx):
+def getInputName(moduleName,sigIdx):
     
-    return PygamRootInputDict['names'][sigIdx]
+    return PygamRootInputDict[moduleName]['names'][sigIdx]
 
-def getOutputName(sigIdx):
+def getOutputName(moduleName, sigIdx):
     
-    return PygamRootOutputDict['names'][sigIdx]
+    return PygamRootOutputDict[moduleName]['names'][sigIdx]
 
-def getParameterName(paramIdx):
+def getParameterName(moduleName, paramIdx):
     
-    return PygamParameterDict['names'][paramIdx]
+    return PygamParameterDict[moduleName]['names'][paramIdx]
 
 # -- parameter-specific functions
-def getParameterDefaultValue(param):
+def getParameterDefaultValue(moduleName, param):
     
     if isinstance(param, int):
         paramIdx = param
     
     elif isinstance(param, str):
         try:
-            paramIdx = PygamParameterDict['names'].index(param)
+            paramIdx = PygamParameterDict[moduleName]['names'].index(param)
         except:
             raise Exception(param + ' not found.')
     
-    return PygamParameterDict['defaultValues'][paramIdx]
+    return PygamParameterDict[moduleName]['defaultValues'][paramIdx]
 
-def setParameterValue(param, value):
+def setParameterValue(moduleName, param, value):
     
     if isinstance(param, int):
         if param > len(data) - 1 or param < 0:
             raise Exception("Invalid index (either out of bounds or lesser than zero.)")
         else:
-            paramName =  PygamParameterDict['names'][param]
+            paramName =  PygamParameterDict[moduleName]['names'][param]
             
     elif isinstance(param, str):
         paramName = param

@@ -101,27 +101,30 @@ public:
 	 * @param[in]  direction    input, output or parameter.
 	 * @param[in]  numberOfArg  length of the array.
 	 * @param[in]  pythonModule module from which datatypes are imported. 
+	 * @param[in]  moduleName name of target python module. 
 	 * @return     True on success.
 	 */
-	bool GetTypes(PyArgumentDirection direction, uint32 numberOfArgs, PyObject* pythonModule);
+	bool GetTypes(PyArgumentDirection direction,  uint32 numberOfArgs, PyObject* pythonModule, PyObject *moduleName);
 	
 	/**
 	 * @brief      Fill a PyArgumentStruct dimension fields with data from pythonModule.
 	 * @param[in]  direction    input, output or parameter.
 	 * @param[in]  numberOfArg  length of the array.
 	 * @param[in]  pythonModule module from which datatypes are imported. 
+	 * @param[in]  moduleName name of target python module. 
 	 * @return     True on success.
 	 */
-	bool GetDimensions(PyArgumentDirection direction, uint32 numberOfArgs, PyObject* pythonModule);
+	bool GetDimensions(PyArgumentDirection direction, uint32 numberOfArgs, PyObject* pythonModule, PyObject *moduleName);
 	
 	/**
 	 * @brief      Fill a PyArgumentStruct name fields with data from pythonModule.
 	 * @param[in]  direction    input, output or parameter.
 	 * @param[in]  numberOfArg  length of the array.
 	 * @param[in]  pythonModule module from which datatypes are imported. 
+	 * @param[in]  moduleName name of target python module. 
 	 * @return     True on success.
 	 */
-	bool GetNames(PyArgumentDirection direction, uint32 numberOfArgs, PyObject* pythonModule);
+	bool GetNames(PyArgumentDirection direction, uint32 numberOfArgs, PyObject* pythonModule, PyObject *moduleName);
 	
 	/**
 	 * @brief      Returns the MARTe2 type from a PyObject* PyTypeObject.

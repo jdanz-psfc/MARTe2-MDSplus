@@ -143,7 +143,7 @@ private:
 	 * 
 	 */
 	//@{
-	PyObject *pName, *pModule, *pFunc, *pygamModule;
+	PyObject *pName, *pModule, *pModuleName, *pFunc, *pygamModule;
 	PyObject *pValue;
 	
 	PyObject *rootInputDict;							//!< PyObject dictionary with input data imported from Python code.
