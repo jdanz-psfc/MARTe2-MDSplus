@@ -4,19 +4,19 @@ from copy import *
 
 # --- CODE INFO ---
 
-pygam.RootInputDict = {
+pygam.RootInputDict['pid'] = {
         'types'      : ( np.float64, ),
         'dimensions' : ( (1, 1),  ),
         'names'      : ( 'Input',   )
         }
 
-pygam.RootOutputDict = {
+pygam.RootOutputDict['pid'] = {
         'types'      : ( np.float64, ),
         'dimensions' : ( (1, 1),     ),
         'names'      : ( 'Output',        )
         }
 
-pygam.ParameterDict = {
+pygam.ParameterDict['pid'] = {
         'types'        : ( np.float64,   np.float64, np.float64, np.float64   ), 
         'dimensions'   : ( (1,1),        (1,1),      (1,1), (1,1)        ),
         'names'        : ( 'Kp',     'Ki',  'Kd', 'T'     ),
