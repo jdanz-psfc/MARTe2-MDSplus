@@ -492,17 +492,24 @@ bool StreamOut::SetConfiguredDatabase(StructuredDataI& data) {
         }
 	if(timeStreaming)
 	{
-            ok = numberOfElements == 1u;
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfElements for the time must be 1");
-		return ok;
-            }
             ok = GetFunctionSignalSamples(OutputSignals, 0u, i, numSamples[i]);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read number of samples for signal %d ", i);
 		return ok;
             }
-	}	    
+            if(numSamples[i] == 1)
+	    {
+	          numSamples[i] = numberOfElements;
+	    }
+	    else
+	    {
+	      ok = (numberOfElements == 1);
+              if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Samples and elements cannot be both > 1 for signal %d ", i);
+		return ok;
+              }
+	    }
+ 	}	    
 	else //Oscilloscope mode
 	{
 	    numElements[i] = numberOfElements;
