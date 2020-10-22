@@ -66,18 +66,23 @@ namespace MARTe {
  {
     uint32 signalIdx;
     float32 **streamBuffers;
+    float32 *timeBuffer;
     uint32 *bufIdxs;
     uint32 *lastBufIdxs;
     uint32 *bufElements;
     EventSem *eventSem;
     FastPollingMutexSem *mutexSem;
     uint32 nOfBuffers;
-    uint8 *started;
+    bool checkOverflow;
+    StreamString channelName;
+    bool *started;
 
 public:
-    StreamListener(uint32 signalIdx, float32 **streamBuffers, uint32 *bufIdxs, uint32 *lastBufIdxs, 
-	uint32 *bufElements, EventSem *eventSem, FastPollingMutexSem *mutexSem, uint32 nOfBuffers, uint8 *started)
+    StreamListener(StreamString channelName, uint32 signalIdx, float32 **streamBuffers, uint32 *bufIdxs, uint32 *lastBufIdxs, 
+	uint32 *bufElements, EventSem *eventSem, FastPollingMutexSem *mutexSem, uint32 nOfBuffers, bool checkOverflow, float32 *timeBuffer,
+	bool *started)
     {
+	this->channelName = channelName;
 	this->signalIdx = signalIdx;
 	this->bufIdxs = bufIdxs;
 	this->lastBufIdxs = lastBufIdxs;
@@ -87,6 +92,8 @@ public:
 	this->streamBuffers = streamBuffers;
 	this->bufElements = bufElements;
 	this->nOfBuffers = nOfBuffers;
+	this->checkOverflow = checkOverflow;
+	this->timeBuffer = timeBuffer;
 	this->started = started;
     } 
     virtual ~StreamListener() {}
@@ -198,7 +205,8 @@ public:
      * @return the number of buffers in the circular buffer.
      */
     uint32 GetNumberOfBuffers() const;
-   
+
+  
 private:
 
     /**
@@ -221,6 +229,7 @@ private:
     uint32 *lastBufIdxs;
     uint32 numChannels;
     float32 **streamBuffers;
+    float32 *synchStreamTime;
     EventSem eventSem;
     FastPollingMutexSem mutexSem;
     int32 synchronizingIdx;
@@ -229,7 +238,7 @@ private:
     StreamListener **streamListeners;
     uint32 counter;
     float32 period;
-    uint8 started;
+    bool started;
  };
   
 

@@ -30,6 +30,7 @@ StreamIn::StreamIn() :
 	bufIdxs = NULL_PTR(uint32 *);
 	lastBufIdxs = NULL_PTR(uint32 *);
 	streamBuffers = NULL_PTR(float32 **);
+	synchStreamTime = NULL_PTR(float32 *);
 	bufElements = NULL_PTR(uint32 *);
 	streamListeners = NULL_PTR(StreamListener **);
 
@@ -71,6 +72,10 @@ StreamIn::~StreamIn() {
         GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *& > (streamBuffers[i]));
       }
       GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *& >(streamBuffers));
+    }
+    if (synchStreamTime != NULL_PTR(float32 *))
+    {
+      GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *& >(synchStreamTime));
     }
 
     if (streamListeners != NULL_PTR(StreamListener **))
@@ -180,14 +185,22 @@ bool StreamIn::Synchronise() {
 	    {
 	    	*reinterpret_cast<uint32 *>(&dataSourceMemory[offsets[n]+currEl * sizeof(float32)]) = streamBuffers[n][bufIdxs[n]];
 	    }
-	    bufIdxs[n] = (bufIdxs[n] + 1)%(numberOfBuffers*bufElements[n]);
+	    if((synchronizingIdx == (int32)n) && (currEl == 0)) //If an array is received keep track only of the first time
+	    {
+                if(period <= 0) //If period not defined take time information from synchronizing stream
+		{
+		    *reinterpret_cast<uint32 *>(&dataSourceMemory[offsets[nOfSignals]]) = synchStreamTime[bufIdxs[n]] * 1E6;
+		}
+		else
+	        {
+		    *reinterpret_cast<uint32 *>(&dataSourceMemory[offsets[nOfSignals]]) = counter * (int)(period * 1E6);
+	        }
+	    }
+	    if(((bufIdxs[n] + 1)%(numberOfBuffers*bufElements[n])) != lastBufIdxs[n])
+	        bufIdxs[n] = (bufIdxs[n] + 1)%(numberOfBuffers*bufElements[n]);
 	    mutexSem.FastUnLock();
 	}
 
-    }
-    if(synchronizingIdx != -1)  //If synchronizing, write time in us
-    {
-	*reinterpret_cast<uint32 *>(&dataSourceMemory[offsets[nOfSignals]]) = counter * (int)(period * 1E6);
     }
     counter++;
 
@@ -207,6 +220,7 @@ bool StreamIn::Initialise(StructuredDataI& data) {
     bool ok = DataSourceI::Initialise(data);
     if (ok) {
         ok = data.Read("NumberOfBuffers", numberOfBuffers);
+	numberOfBuffers++; //An extra buffer is added to handle overfolw
     }
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfBuffers shall be specified");
@@ -300,16 +314,19 @@ bool StreamIn::SetConfiguredDatabase(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "GetFunctionNumberOfSignals() returned false");
         }
 	if (ok) {
-            ok = ((synchronizingIdx >= 0) || !(nOfSignals > 1u));
+            ok = (!(synchronizingIdx >= 0) || (nOfSignals > 1u));
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "The number of signals must be at least 2 if SynchronizingIdx != -1");
+                REPORT_ERROR(ErrorManagement::ParametersError, "The number %d of signals must be at least 2 if SynchronizingIdx != -1", nOfSignals);
             }
 	}
     }
 
     bufElements = reinterpret_cast<uint32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(int32)));
-	bufIdxs  = reinterpret_cast<uint32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(int32)));
-    	lastBufIdxs = reinterpret_cast<uint32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(int32)));
+    memset(bufElements, 0, nOfSignals * sizeof(int32));
+    bufIdxs  = reinterpret_cast<uint32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(int32)));
+    memset(bufIdxs, 0, nOfSignals * sizeof(int32));
+    lastBufIdxs = reinterpret_cast<uint32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(int32)));
+    memset(lastBufIdxs, 0, nOfSignals * sizeof(int32));
     if(ok)
     {
 	for (uint32 n = 0u; (n < nOfSignals) && ok; n++) {
@@ -328,7 +345,14 @@ bool StreamIn::SetConfiguredDatabase(StructuredDataI& data) {
     {
       	streamBuffers = reinterpret_cast<float32 **>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(float32 *)));
       	for(uint32 i = 0; i < nOfSignals; i++)
+	{
 	    streamBuffers[i] = reinterpret_cast<float32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(numberOfBuffers * bufElements[i] * sizeof(float32)));
+	    memset(streamBuffers[i], 0, numberOfBuffers * bufElements[i] * sizeof(float32));
+	}
+	if(synchronizingIdx >= 0)  //If this DataSource is a synchronizing one, allocate buffer for times
+	{
+      	    synchStreamTime = reinterpret_cast<float32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(numberOfBuffers * sizeof(float32)));
+	}
     }
     if (ok) {
         for (uint32 n = 0u; (n < nOfSignals) && ok; n++) {
@@ -409,13 +433,24 @@ bool StreamIn::SetConfiguredDatabase(StructuredDataI& data) {
     streamListeners = reinterpret_cast<StreamListener **>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(StreamListener *)));
 
     for (uint32 sigIdx = 0; sigIdx < nOfSignals - 1; sigIdx++) {
-	streamListeners[sigIdx] = new StreamListener(sigIdx, streamBuffers, bufIdxs, lastBufIdxs, bufElements, &eventSem, &mutexSem, numberOfBuffers, &started);
+        if(sigIdx == (uint32)synchronizingIdx)
+	{
+	    streamListeners[sigIdx] = new StreamListener(channelNames[sigIdx], sigIdx, streamBuffers, bufIdxs, lastBufIdxs, bufElements, &eventSem, 
+						     &mutexSem, numberOfBuffers, false, synchStreamTime, &started);
+	}
+	else
+	{
+	    streamListeners[sigIdx] = new StreamListener(channelNames[sigIdx], sigIdx, streamBuffers, bufIdxs, lastBufIdxs, bufElements, &eventSem, 
+						     &mutexSem, numberOfBuffers, false, NULL, &started);
+	}
+
+std::cout << "REGISTER LISTENER  " << channelNames[sigIdx].Buffer() << std::endl;
 
 	evStream.registerListener(streamListeners[sigIdx], channelNames[sigIdx].Buffer());
-	evStream.start();
-	bufIdxs[sigIdx] = 0;
+	bufIdxs[sigIdx] = bufElements[sigIdx] - 1;
 	lastBufIdxs[sigIdx] = 0;		
     }
+    evStream.start();
   }
    counter = 0;
    return ok;
@@ -435,37 +470,41 @@ void StreamListener::dataReceived(MDSplus::Data *samples, MDSplus::Data *times, 
     if(bufElements[signalIdx] > 1)
     {
 	std::vector<float> bufArr;
+	std::vector<float> timeArr;
 	try {
 	    bufArr = samples->getFloatArray();
+	    if(bufArr.size() != bufElements[signalIdx])
+	    {
+	         printf("Received array lenght %d in streaming is different from expected length %d\n", (uint32)bufArr.size(), bufElements[signalIdx] );
+		 return;
+	    }
+	    if(timeBuffer != NULL_PTR(float32 *))
+	    {
+		timeArr = times->getFloatArray();
+	    }
 std::cout << "Received  " << samples << std::endl;
 	} catch(MDSplus::MdsException &exc) {
 	    printf("Exception issued when getting stream: %s", exc.what());
 	}	    
 	
 	mutexSem->FastLock();
-	uint32 actSize = bufArr.size();
-	if(actSize > bufElements[signalIdx])
-	    actSize = bufElements[signalIdx];
-	for (uint32 el = 0; el < actSize; el++)
+	for (uint32 el = 0; el < bufArr.size(); el++)
 	{
 	    streamBuffers[signalIdx][lastBufIdxs[signalIdx]] = bufArr[el];
+	    if(timeBuffer != NULL_PTR(float32 *))
+	        timeBuffer[lastBufIdxs[signalIdx]] = timeArr[el];
 	    lastBufIdxs[signalIdx] += 1;
 	    if(lastBufIdxs[signalIdx] >= nOfBuffers * bufElements[signalIdx])
 		lastBufIdxs[signalIdx] = 0;
-	    if(lastBufIdxs[signalIdx] == bufIdxs[signalIdx])
+	    if(lastBufIdxs[signalIdx] == bufIdxs[signalIdx]) //Overflow
 	    {
-	        printf("Overflow receiving data for channel %d",signalIdx);
-	    }
-	}
-	for (uint32 el = actSize; el < bufElements[signalIdx]; el++)
-	{
-	    streamBuffers[signalIdx][lastBufIdxs[signalIdx]] = 0;
-	    lastBufIdxs[signalIdx] += 1;
-	    if(lastBufIdxs[signalIdx] >= nOfBuffers * bufElements[signalIdx])
-		lastBufIdxs[signalIdx] = 0;
-	    if(lastBufIdxs[signalIdx] == bufIdxs[signalIdx])
-	    {
-	        printf("Overflow receiving data for channel %d",signalIdx);
+		if(checkOverflow)
+		{
+	            printf("Overflow receiving data for channel %d",signalIdx);
+	        }
+	        bufIdxs[signalIdx] += 1;
+		if(bufIdxs[signalIdx] >= nOfBuffers * bufElements[signalIdx])
+		    bufIdxs[signalIdx] = 0;
 	    }
 	}
 	eventSem->Post();
@@ -476,13 +515,20 @@ std::cout << "Received  " << samples << std::endl;
         float *bufSamples;
 	float bufSample;
 	int numSamples;
+	float *timeSamples;
+	float timeSample;
+	int numTimes;
 	char clazz, dtype;
 	samples->getInfo(&clazz, &dtype);
 	if(clazz == CLASS_A)
 	{
 	    try {
 	    	bufSamples = samples->getFloatArray(&numSamples);
-std::cout << "Received  " << samples << std::endl;
+		if(timeBuffer != NULL_PTR(float32 *))
+		{
+		    timeSamples = times->getFloatArray(&numTimes); //must be equal to numSamples
+		}
+std::cout << "Received from  " << channelName.Buffer() << ":  " << samples << std::endl;
 	    } catch(MDSplus::MdsException &exc) {
 	    	printf("Exception issued when getting stream: %s", exc.what());
 		return;
@@ -492,9 +538,14 @@ std::cout << "Received  " << samples << std::endl;
 	{
 	    try {
 	        bufSample = samples->getFloat();
-std::cout << "Received  " << bufSample << std::endl;
+std::cout << "Received "<< this << "  from  " << channelName.Buffer() << ":  " << bufSample << "   time: " << times->getLong() << std::endl;
 	        bufSamples = &bufSample;
 	        numSamples = 1;
+		if(timeBuffer != NULL_PTR(float32 *))
+		{
+		    timeSample = times->getFloat();
+		    timeSamples = &timeSample;
+		}
 	    } catch(MDSplus::MdsException &exc) {
 	        printf("Exception issued when getting stream: %s", exc.what());
 	    } 
@@ -503,17 +554,32 @@ std::cout << "Received  " << bufSample << std::endl;
 	for(int sample = 0; sample < numSamples; sample++)
 	{
 	    streamBuffers[signalIdx][lastBufIdxs[signalIdx]] = bufSamples[sample];
+	    if(timeBuffer != NULL_PTR(float32 *))
+	      timeBuffer[lastBufIdxs[signalIdx]] = timeSamples[sample];
 	    lastBufIdxs[signalIdx] += 1;
 	    if(lastBufIdxs[signalIdx] >= nOfBuffers)
 	        lastBufIdxs[signalIdx] = 0;
+	    if(lastBufIdxs[signalIdx] == bufIdxs[signalIdx]) //Overflow. Note that there is one element more in the buffer
+	    {
+		if(checkOverflow)
+		{
+	            printf("Overflow receiving data for channel %d",signalIdx);
+	        }
+	        bufIdxs[signalIdx] += 1;
+		if(bufIdxs[signalIdx] >= nOfBuffers * bufElements[signalIdx])
+		    bufIdxs[signalIdx] = 0;
+	    }
 	}
 	if(clazz == CLASS_A)
+	{
 	    delete[]bufSamples;
+	    if(timeBuffer != NULL_PTR(float32 *))
+	    {
+	        delete[]timeSamples;
+	    }
+	}
 	eventSem->Post();
 	mutexSem->FastUnLock();
-	if(lastBufIdxs[signalIdx] == bufIdxs[signalIdx])
-	    printf("Overflow receiving data for channel %d", signalIdx);
-
     }
 }
 
