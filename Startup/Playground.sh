@@ -5,6 +5,7 @@ if [ -z ${MARTE_DIR+x} ]; then export MARTE_DIR=.; fi;
 
 
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/.
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/GAMs/RTSMGAM/
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/GAMs/FunctionGeneratorGAM/
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/GAMs/SimulinkWrapperGAM/
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/GAMs/TestGAM/
