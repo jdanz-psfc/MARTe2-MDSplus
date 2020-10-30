@@ -41,7 +41,9 @@ StreamIn::StreamIn() :
 	eventSem.Create();
 	mutexSem.Create();
 	numberOfBuffers = 0;
+	period = 0;
 	started = false;
+	
 
 }
 
@@ -141,6 +143,14 @@ bool StreamIn::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* co
 bool StreamIn::Synchronise() {
     started = true;
     bool ok = true;
+    if(counter == 0)
+    {
+        startCycleTicks = HighResolutionTimer::Counter();
+    }
+    else
+    {
+         periodGuess = (HighResolutionTimer::Counter() - startCycleTicks) * HighResolutionTimer::Period() / counter;
+    }
     uint32 n;
     uint32 nOfSignals = GetNumberOfSignals();
     if (synchronizingIdx != -1)
@@ -436,12 +446,12 @@ bool StreamIn::SetConfiguredDatabase(StructuredDataI& data) {
         if(sigIdx == (uint32)synchronizingIdx)
 	{
 	    streamListeners[sigIdx] = new StreamListener(channelNames[sigIdx], sigIdx, streamBuffers, bufIdxs, lastBufIdxs, bufElements, &eventSem, 
-						     &mutexSem, numberOfBuffers, false, synchStreamTime, &started);
+						     &mutexSem, numberOfBuffers, false, synchStreamTime, &started, &periodGuess);
 	}
 	else
 	{
 	    streamListeners[sigIdx] = new StreamListener(channelNames[sigIdx], sigIdx, streamBuffers, bufIdxs, lastBufIdxs, bufElements, &eventSem, 
-						     &mutexSem, numberOfBuffers, false, NULL, &started);
+						     &mutexSem, numberOfBuffers, false, NULL, &started, &periodGuess);
 	}
 
 std::cout << "REGISTER LISTENER  " << channelNames[sigIdx].Buffer() << std::endl;
@@ -453,6 +463,8 @@ std::cout << "REGISTER LISTENER  " << channelNames[sigIdx].Buffer() << std::endl
     evStream.start();
   }
    counter = 0;
+   startCycleTicks = 0;
+   periodGuess = 0.;
    return ok;
 }
 
@@ -471,6 +483,7 @@ void StreamListener::dataReceived(MDSplus::Data *samples, MDSplus::Data *times, 
     {
 	std::vector<float> bufArr;
 	std::vector<float> timeArr;
+	float64 currPeriod = *periodGuessPtr;
 	try {
 	    bufArr = samples->getFloatArray();
 	    if(bufArr.size() != bufElements[signalIdx])
@@ -488,11 +501,17 @@ std::cout << "Received  " << samples << std::endl;
 	}	    
 	
 	mutexSem->FastLock();
+	float32 currTime = 0;
+	
 	for (uint32 el = 0; el < bufArr.size(); el++)
 	{
 	    streamBuffers[signalIdx][lastBufIdxs[signalIdx]] = bufArr[el];
 	    if(timeBuffer != NULL_PTR(float32 *))
+	    {
 	        timeBuffer[lastBufIdxs[signalIdx]] = timeArr[el];
+		if(el == 0) 
+		    currTime = timeArr[el];
+	    }
 	    lastBufIdxs[signalIdx] += 1;
 	    if(lastBufIdxs[signalIdx] >= nOfBuffers * bufElements[signalIdx])
 		lastBufIdxs[signalIdx] = 0;
@@ -505,6 +524,29 @@ std::cout << "Received  " << samples << std::endl;
 	        bufIdxs[signalIdx] += 1;
 		if(bufIdxs[signalIdx] >= nOfBuffers * bufElements[signalIdx])
 		    bufIdxs[signalIdx] = 0;
+	    }
+	    currTime += currPeriod;
+	    if(currPeriod > 0 && timeBuffer != NULL_PTR(float32 *) && el < bufArr.size() -1)
+	    {  
+	        while(currTime < timeArr[el + 1])
+	        {
+	            streamBuffers[signalIdx][lastBufIdxs[signalIdx]] = bufArr[el];
+	            timeBuffer[lastBufIdxs[signalIdx]] = currTime;
+	            lastBufIdxs[signalIdx] += 1;
+	            if(lastBufIdxs[signalIdx] >= nOfBuffers * bufElements[signalIdx])
+		        lastBufIdxs[signalIdx] = 0;
+	            if(lastBufIdxs[signalIdx] == bufIdxs[signalIdx]) //Overflow
+	            {
+		        if(checkOverflow)
+		        {
+	                    printf("Overflow receiving data for channel %d",signalIdx);
+	                }
+	                bufIdxs[signalIdx] += 1;
+		        if(bufIdxs[signalIdx] >= nOfBuffers * bufElements[signalIdx])
+		            bufIdxs[signalIdx] = 0;
+		    }
+		    currTime += currPeriod;
+		}
 	    }
 	}
 	eventSem->Post();

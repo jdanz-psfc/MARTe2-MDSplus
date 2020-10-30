@@ -165,7 +165,7 @@ public:
      * @return the number of buffers in the circular buffer.
      */
     uint32 GetNumberOfBuffers() const;
-    void trigger();
+    void enableTrigger();
 
   
 private:
@@ -177,10 +177,10 @@ private:
     /**
      * Memory holding all the signals that are to be stored, for each cycle, in the output file.
      */
-    enum TrigStates {NotTriggered, Triggering, Triggered} trigState;
+    enum TrigStates {NotTriggered, DelayingTrigger, Triggering, Triggered} trigState;
     uint8 *trigPtr;  
     int32 waitCycles;
-    uint32 cycleCounter;
+    uint32 waitCounter;
     uint32 trigCounter;
     uint32 trigCycles;
     SWTrigEvent *trigEvent;
@@ -193,7 +193,7 @@ private:
    SWTrigEvent(char *name, SWTrig *swTrig) : Event(name), swTrig(swTrig) {}
    void run()
    {
-	swTrig->trigger();
+	swTrig->enableTrigger();
    }
    
  };

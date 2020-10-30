@@ -28,7 +28,7 @@ SWTrig::SWTrig() :
 	trigCounter =0;
 	trigCycles = 0;
 	trigPtr  = new uint8; 
-	cycleCounter = 0;
+	waitCounter = 0;
 	trigEvent = NULL_PTR(SWTrigEvent *);
 }
 
@@ -81,30 +81,41 @@ bool SWTrig::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* cons
     }
    return ok;
 }
-void SWTrig::trigger()
+
+void SWTrig::enableTrigger()
 {
-  std::cout << "TRIGGER!!!" << std::endl;
-    *trigPtr = 1;
-    trigState = Triggering;
-    trigCounter = 0;
+  std::cout << "ENABLE TRIGGER!!!" << std::endl;
+    trigState = DelayingTrigger;
+    waitCounter = 0;
 }
 
 bool SWTrig::Synchronise() {
-    cycleCounter++;
+
 //    std::cout << cycleCounter << "   " << waitCycles << std::endl;
-    if(trigState == NotTriggered && waitCycles > 0 && cycleCounter >= (uint32)waitCycles)
+    if(trigState == NotTriggered)
     {
-	trigger();
-	return true;
+        return true;  //Just waiting for the event
+    }
+    if(trigState == DelayingTrigger)
+    {
+        waitCounter++;
+	if(waitCounter >= (uint32)waitCycles)
+	{
+  std::cout << "TRIGGER!!!" << std::endl;
+	    *trigPtr = 1;
+	    trigState = Triggering;
+	    trigCounter = 0;
+	    return true;
+	}
     }
     if(trigState == Triggering)
     {
+        trigCounter++;
 	if(trigCounter >= trigCycles)
 	{
 	    *trigPtr = 0; 
 	    trigState = Triggered;
 	}
-        trigCounter++;
     }
     return true;
  }
@@ -126,15 +137,15 @@ std::cout << "INIT" << std::endl;
 	if(ok)
 	{
 	    trigEvent = new SWTrigEvent((char *)eventName.Buffer(), this);
+	    trigEvent->start();
 	}
+	else 
+	    trigEvent = NULL_PTR(SWTrigEvent *);
     }
     ok = data.Read("WaitCycles", waitCycles);
     if (!ok) {
-        waitCycles = -1;
-	if(!trigEvent)
-	{
-	    REPORT_ERROR(ErrorManagement::Information, "Neither Event nor WaitCycles specified. No Trigger will be generated.");
-        }
+        waitCycles = 0;
+	ok = true;
     }
     ok = data.Read("TrigCycles", trigCycles);
     if(!ok)
@@ -161,7 +172,7 @@ std::cout << "INIT FATTA" << std::endl;
 
 bool SWTrig::SetConfiguredDatabase(StructuredDataI& data) {
 
-  std::cout << "SET CNFIGURED" << std::endl;
+  std::cout << "SET CONFIGURED" << std::endl;
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     //Check signal properties and compute memory
     uint32 nOfSignals = 0u;  
@@ -229,9 +240,12 @@ bool SWTrig::SetConfiguredDatabase(StructuredDataI& data) {
     }
 
     *trigPtr = 0;  
-    cycleCounter = 0;
+    waitCounter = 0;
     trigCounter = 0;
-    trigState = NotTriggered;
+    if(trigEvent == NULL_PTR(SWTrigEvent *))
+	trigState = DelayingTrigger;
+    else
+	trigState = NotTriggered;
     std::cout << "OK: " << ok << std::endl;
     return ok;
 }

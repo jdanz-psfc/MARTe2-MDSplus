@@ -366,7 +366,6 @@ bool SpiderCalGAM::GetSignalNames(const SignalDirection direction,
 bool SpiderCalGAM::Initialise(StructuredDataI & data) {
 	
 	//REPORT_ERROR(ErrorManagement::Debug, "MathExpressionGAM: INITIALIZE");
-printf("PARTE INIT\n");
  	bool ok = GAM::Initialise(data);
 
 	if (!ok) {
@@ -419,7 +418,6 @@ printf("PARTE INIT\n");
 	}
 	data.MoveToAncestor(1);
 	lowPassPrevX = lowPassPrevY = 0;
-printf("FINISCE INIT\n");
 	return ok;
 	
 }
@@ -427,7 +425,6 @@ printf("FINISCE INIT\n");
 bool SpiderCalGAM::Setup() {
 	
 	bool ok;
-printf("PARTE SETUP\n");
 
 	StreamString currInNames[numInputSignals];
 	StreamString currOutNames[numOutputSignals];
@@ -706,8 +703,6 @@ printf("PARTE SETUP\n");
 	calIdx = 0;
 	totSamples = 0;
 
-printf("FINISCE SETUP\n");
-	
 	
 	return ok;  
 }
@@ -726,7 +721,7 @@ bool SpiderCalGAM::Execute() {
     *outSignals.Power_on_EG = - *outSignals.I_EG * *outSignals.V_EG/1000.;
     *outSignals.Peak_temp_blue = *outSignals.Power_on_EG*1.04 + 30.3;
     *outSignals.Peak_temp_red = *outSignals.Power_on_EG*2.05 + 31;
-    *outSignals.RF1_Pf = (*inSignals.RF1_Pf - firstRF1_Pf)/1000. * 300000/5. ;
+    *outSignals.RF1_Pf = (*inSignals.RF1_Pf - firstRF1_Pf)/1000.* 300000/5. ;
     *outSignals.RF2_Pf = (*inSignals.RF2_Pf - firstRF2_Pf)/1000. * 300000/5. ;
     *outSignals.RF3_Pf = (*inSignals.RF3_Pf - firstRF2_Pf)/1000. * 300000/5. ;
     *outSignals.RF4_Pf = (*inSignals.RF4_Pf - firstRF2_Pf)/1000. * 300000/5. ;
@@ -738,14 +733,14 @@ bool SpiderCalGAM::Execute() {
       firstRF3_Pf = *inSignals.RF3_Pf;
       firstRF4_Pf = *inSignals.RF4_Pf;
     }
-    *outSignals.PLight1 = *inSignals.PLight1 - firstPLight1;
-    *outSignals.PLight2 = *inSignals.PLight2 - firstPLight2;
-    *outSignals.PLight3 = *inSignals.PLight3 - firstPLight3;
-    *outSignals.PLight4 = *inSignals.PLight4 - firstPLight4;
-    *outSignals.PLight5 = *inSignals.PLight5 - firstPLight5;
-    *outSignals.PLight6 = *inSignals.PLight6 - firstPLight6;
-    *outSignals.PLight7 = *inSignals.PLight7 - firstPLight7;
-    *outSignals.PLight8 = *inSignals.PLight8 - firstPLight8;
+    *outSignals.PLight1 = (*inSignals.PLight1 - firstPLight1) * 13.7;
+    *outSignals.PLight2 = (*inSignals.PLight2 - firstPLight2) * 6.7;
+    *outSignals.PLight3 = (*inSignals.PLight3 - firstPLight3) * 10.8;
+    *outSignals.PLight4 = (*inSignals.PLight4 - firstPLight4) * 7.3;
+    *outSignals.PLight5 = (*inSignals.PLight5 - firstPLight5) * 14.4;
+    *outSignals.PLight6 = (*inSignals.PLight6 - firstPLight6) * 12;
+    *outSignals.PLight7 = (*inSignals.PLight7 - firstPLight7) * 8.3;
+    *outSignals.PLight8 = (*inSignals.PLight8 - firstPLight8) * 9.5;
     
     if(firstLightTurn && *inSignals.PLight1 > 0)
     {
@@ -764,12 +759,12 @@ bool SpiderCalGAM::Execute() {
     RF2_pfsum += *outSignals.RF2_Pf;
     RF3_pfsum += *outSignals.RF3_Pf;
     RF4_pfsum += *outSignals.RF4_Pf;
-
     *outSignals.RF1_pfave = RF1_pfsum/currSample;// /1000.* 300000/5.;
     *outSignals.RF2_pfave = RF2_pfsum/currSample;// /1000.* 300000/5.;
     *outSignals.RF3_pfave = RF3_pfsum/currSample;// /1000.* 300000/5.;
     *outSignals.RF4_pfave = RF4_pfsum/currSample;// /1000.* 300000/5.;
 
+//Display x 10**20
     PLight1sum += (*inSignals.PLight1 - firstPLight1);
     PLight2sum += (*inSignals.PLight2 - firstPLight2);
     PLight3sum += (*inSignals.PLight3 - firstPLight3);
@@ -779,14 +774,14 @@ bool SpiderCalGAM::Execute() {
     PLight7sum += (*inSignals.PLight7 - firstPLight7);
     PLight8sum += (*inSignals.PLight8 - firstPLight8);
     
-    *outSignals.PLight1ave = PLight1sum/currSample;
-    *outSignals.PLight2ave = PLight2sum/currSample;
-    *outSignals.PLight3ave = PLight3sum/currSample;
-    *outSignals.PLight4ave = PLight4sum/currSample;
-    *outSignals.PLight5ave = PLight5sum/currSample;
-    *outSignals.PLight6ave = PLight6sum/currSample;
-    *outSignals.PLight7ave = PLight7sum/currSample;
-    *outSignals.PLight8ave = PLight8sum/currSample;
+    *outSignals.PLight1ave = PLight1sum/currSample * 137;  //display x10**19
+    *outSignals.PLight2ave = PLight2sum/currSample * 67;
+    *outSignals.PLight3ave = PLight3sum/currSample * 108;
+    *outSignals.PLight4ave = PLight4sum/currSample * 73;
+    *outSignals.PLight5ave = PLight5sum/currSample * 144;
+    *outSignals.PLight6ave = PLight6sum/currSample * 120;
+    *outSignals.PLight7ave = PLight7sum/currSample * 83;
+    *outSignals.PLight8ave = PLight8sum/currSample * 95;
     
     *outSignals.FSB_TT1 = calibTCN(*inSignals.FSB_TT1);
     *outSignals.FSB_TT2 = calibTCN(*inSignals.FSB_TT2);
@@ -1005,13 +1000,13 @@ bool SpiderCalGAM::Execute() {
     float delay_DP=4.65*95/(flow_DPsum/totSamples);
     float delay_PG=0.82*375/(flow_PGsum/totSamples);
 
-    printf("DELAY FSLW : %f\n", delay_FSLW);
-    printf("DELAY FSBP : %f\n", delay_FSBP);
-    printf("DELAY SCLW : %f\n", delay_SCLW);
-    printf("DELAY BP : %f\n", delay_BP);
-    printf("DELAY DP : %f\n", delay_DP);
-    printf("DELAY PG : %f\n", delay_PG);
-
+//     printf("DELAY FSLW : %f\n", delay_FSLW);
+//     printf("DELAY FSBP : %f\n", delay_FSBP);
+//     printf("DELAY SCLW : %f\n", delay_SCLW);
+//     printf("DELAY BP : %f\n", delay_BP);
+//     printf("DELAY DP : %f\n", delay_DP);
+//     printf("DELAY PG : %f\n", delay_PG);
+// 
     
     
     uint32 delay_FSLWint = 0.5 + delay_FSLW / period;
