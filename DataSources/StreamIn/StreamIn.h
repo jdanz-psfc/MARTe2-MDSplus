@@ -76,11 +76,12 @@ namespace MARTe {
     bool checkOverflow;
     StreamString channelName;
     bool *started;
+    float64 *periodGuessPtr;
 
 public:
     StreamListener(StreamString channelName, uint32 signalIdx, float32 **streamBuffers, uint32 *bufIdxs, uint32 *lastBufIdxs, 
 	uint32 *bufElements, EventSem *eventSem, FastPollingMutexSem *mutexSem, uint32 nOfBuffers, bool checkOverflow, float32 *timeBuffer,
-	bool *started)
+	bool *started, float64 *periodGuessPtr)
     {
 	this->channelName = channelName;
 	this->signalIdx = signalIdx;
@@ -95,6 +96,7 @@ public:
 	this->checkOverflow = checkOverflow;
 	this->timeBuffer = timeBuffer;
 	this->started = started;
+	this->periodGuessPtr = periodGuessPtr;
     } 
     virtual ~StreamListener() {}
     virtual void dataReceived(MDSplus::Data *samples, MDSplus::Data *times, int shot);
@@ -239,6 +241,10 @@ private:
     uint32 counter;
     float32 period;
     bool started;
+    //Value of HighResolutionTimer::Counter()in first execute() call
+    uint64 startCycleTicks;
+    float64 periodGuess;
+
  };
   
 
