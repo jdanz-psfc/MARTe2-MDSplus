@@ -34,6 +34,8 @@
 #include "DataSourceI.h"
 #include "ProcessorType.h"
 #include "MemoryMapSynchronisedInputBroker.h"
+#include "EmbeddedServiceMethodBinderI.h"
+#include "SingleThreadService.h"
 #include "MessageI.h"
 #include "EventSem.h"
 #include <mdsobjects.h>
@@ -43,26 +45,18 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 /**
- * @brief A DataSourceI interface which allows Receiving a stream of incoming data via MDSplus 
+ * @brief A DataSourceI interface which synchornizes clock generation to the reception of a MDSPlus event 
  * events.
  *
- * @details the stream is received in a separate thread (whose CPU mask is exposed as a
- * parameter)and temporarily stored in a circular buffer. When the DataSource is activated (i.e.
- * its Synchronize() method is called, if a sample is present, then it is returned. 
- * Two modes of operation are spported: asynchronous and synchronized. In asynchronous mode
- * Synchronize returns soon, possibly leaving the previous sample. 
- * Otherwise, Synchronize() suspends until the reqested number of samples has been received. 
- * If synchronized, a signal named Time shall be defined, that will report the current sample
- * time based on the Period parameter. i.e. time[i] = sampleCount * Period
- * If more than one signal is defined (a channel name is associated with every signal) then 
- * synchronization can be based on the reception for a single channel, or from all channels. 
- * Currently only scalar values can be received, with a settable number of samples (default 1).
- * Type conversion is supported.
+ * @details This Data Source is similar to LinuxTimes except for the fact that clock generation is started upon the reception 
+ * of a MDSplus event. In addition, up to 8 triggers can be geneared, each associated with the reception of a given MDSplus event. 
  *
  * */
+#define MAX_TRIGGER_OUTPUTS 8
+
 class SWTrigEvent;
  
-class SWTrig: public DataSourceI, public MessageI {
+class SWTrig: public DataSourceI, public MessageI, public EmbeddedServiceMethodBinderI  {
 public:
     CLASS_REGISTER_DECLARATION()
 
@@ -165,35 +159,72 @@ public:
      * @return the number of buffers in the circular buffer.
      */
     uint32 GetNumberOfBuffers() const;
-    void enableTrigger();
+    void enableTrigger(int32 idx);
 
+   virtual ErrorManagement::ErrorType Execute(ExecutionInfo & info);
   
 private:
+   /**
+     * Current counter and timer
+     */
+    uint32 cycles;
+    int32 time;
+
+    bool clockStarted;
+    /**
+     * The semaphore for starting clock generation.
+     */
+    EventSem startSem;
 
     /**
-     * Offset of each signal in the dataSourceMemory
+     * The semaphore for the synchronisation between the EmbeddedThread and the Synchronise method.
      */
+    EventSem synchSem;
 
     /**
-     * Memory holding all the signals that are to be stored, for each cycle, in the output file.
+     * The EmbeddedThread where the Execute method waits for the period to elapse.
      */
-    enum TrigStates {NotTriggered, DelayingTrigger, Triggering, Triggered} trigState;
-    uint8 *trigPtr;  
-    int32 waitCycles;
-    uint32 waitCounter;
-    uint32 trigCounter;
-    uint32 trigCycles;
-    SWTrigEvent *trigEvent;
+    SingleThreadService executor;
+
+    /**
+     * HighResolutionTimer::Counter() value after the last Sleep.
+     */
+    uint64 lastTimeTicks;
+
+    /**
+     * Sleeping period in units of ticks.
+     */
+    uint64 sleepTimeTicks;
+
+    /**
+     * Sleeping period.
+     */
+    uint32 timerPeriodUsecTime;
+
+    enum TrigStates {NotTriggered, DelayingTrigger, Triggering, Triggered} trigState[MAX_TRIGGER_OUTPUTS];
+    uint32 numTriggers;
+    uint8 triggers[MAX_TRIGGER_OUTPUTS];  
+    uint32 waitCycles[MAX_TRIGGER_OUTPUTS];
+    uint32 waitCounter[MAX_TRIGGER_OUTPUTS];
+    uint32 trigCounter[MAX_TRIGGER_OUTPUTS];
+    uint32 trigCycles[MAX_TRIGGER_OUTPUTS];
+    StreamString trigEventNames[MAX_TRIGGER_OUTPUTS];
+    StreamString startEventName;
+    SWTrigEvent *trigEvent[MAX_TRIGGER_OUTPUTS];
+    SWTrigEvent *startEvent;
+    float32 triggerTime;
+    float32 frequency;
  };
 
  class SWTrigEvent: public MDSplus::Event
  {
    SWTrig *swTrig;
+   uint32 idx;
  public:
-   SWTrigEvent(char *name, SWTrig *swTrig) : Event(name), swTrig(swTrig) {}
+   SWTrigEvent(char *name, uint32 idx, SWTrig *swTrig) : Event(name), swTrig(swTrig) , idx(idx){}
    void run()
    {
-	swTrig->enableTrigger();
+	swTrig->enableTrigger(idx);
    }
    
  };

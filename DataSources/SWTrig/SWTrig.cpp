@@ -20,24 +20,56 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
-SWTrig::SWTrig() :
-        DataSourceI(),
-        MessageI() {
-	trigState = NotTriggered;
-	waitCycles = -1;
-	trigCounter =0;
-	trigCycles = 0;
-	trigPtr  = new uint8; 
-	waitCounter = 0;
-	trigEvent = NULL_PTR(SWTrigEvent *);
+SWTrig::SWTrig():  DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this)
+{
+
+  for(uint32 trigIdx = 0; trigIdx < MAX_TRIGGER_OUTPUTS; trigIdx++)
+    {
+	trigState[trigIdx] = NotTriggered;
+	waitCycles[trigIdx] = -1;
+	trigCounter[trigIdx] =0;
+	trigCycles[trigIdx] = 0;
+	triggers[trigIdx] = 0; 
+	waitCounter[trigIdx] = 0;
+	trigEvent[trigIdx] = NULL_PTR(SWTrigEvent *);
+    }
+    startEvent = NULL_PTR(SWTrigEvent *);
+    if (!startSem.Create()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem.");
+    }
+    if (!synchSem.Create()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem.");
+    }
+    lastTimeTicks = 0u;
+    sleepTimeTicks = 0u;
+    timerPeriodUsecTime = 0u;
+    cycles = 0;
+    time = 0;
+    clockStarted = false;
 }
 
-SWTrig::~SWTrig() {
-  delete trigPtr;
+SWTrig::~SWTrig() 
+{
+    for(uint32 trigIdx = 0; trigIdx < MAX_TRIGGER_OUTPUTS; trigIdx++)
+    {
+	if(trigEvent[trigIdx] != NULL_PTR(SWTrigEvent *))
+	    delete trigEvent[trigIdx];
+    }
+    if(startEvent != NULL_PTR(SWTrigEvent *))
+	delete startEvent;
+    if (!synchSem.Post()) {
+	REPORT_ERROR(ErrorManagement::FatalError, "Could not post SynchSem.");
+    }
+    if (!startSem.Post()) {
+	REPORT_ERROR(ErrorManagement::FatalError, "Could not post StartSem.");
+    }
+    if (!executor.Stop()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
+    }
 }
 
 bool SWTrig::AllocateMemory() {
-    return true;
+      return true;
 }
 
 uint32 SWTrig::GetNumberOfMemoryBuffers() {
@@ -45,7 +77,12 @@ uint32 SWTrig::GetNumberOfMemoryBuffers() {
 }
 
 bool SWTrig::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
-    signalAddress = reinterpret_cast<void *&>(trigPtr);
+    if(signalIdx == 0)
+        signalAddress = reinterpret_cast<void *>(&cycles);
+    else if(signalIdx == 1)
+        signalAddress = reinterpret_cast<void *>(&time);
+    else if(signalIdx < MAX_TRIGGER_OUTPUTS * 2)
+        signalAddress = reinterpret_cast<void *>(&triggers[signalIdx - 2]);
     return true;
 }
 
@@ -82,97 +119,219 @@ bool SWTrig::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* cons
    return ok;
 }
 
-void SWTrig::enableTrigger()
+void SWTrig::enableTrigger(int32 idx)
 {
-  std::cout << "ENABLE TRIGGER!!!" << std::endl;
-    trigState = DelayingTrigger;
-    waitCounter = 0;
+    if(idx == -1)
+    {
+	REPORT_ERROR(ErrorManagement::Debug, "Received Start Event %s", startEventName.Buffer());
+	clockStarted = true;
+	if(!startSem.Post())
+	    REPORT_ERROR(ErrorManagement::FatalError, "Cannot post start  semaphore");
+    }
+    else
+    {
+	REPORT_ERROR(ErrorManagement::Debug, "Received Trigger Event %s", trigEventNames[idx].Buffer());
+	trigState[idx] = DelayingTrigger;
+	waitCounter[idx] = 0;
+    }
 }
 
 bool SWTrig::Synchronise() {
-
-//    std::cout << cycleCounter << "   " << waitCycles << std::endl;
-    if(trigState == NotTriggered)
+    ErrorManagement::ErrorType err;
+    err = synchSem.ResetWait(TTInfiniteWait);
+    for( uint32 trigIdx = 0; trigIdx < MAX_TRIGGER_OUTPUTS; trigIdx++)
     {
-        return true;  //Just waiting for the event
-    }
-    if(trigState == DelayingTrigger)
-    {
-        waitCounter++;
-	if(waitCounter >= (uint32)waitCycles)
+	if(trigState[trigIdx] != NotTriggered)
 	{
-  std::cout << "TRIGGER!!!" << std::endl;
-	    *trigPtr = 1;
-	    trigState = Triggering;
-	    trigCounter = 0;
-	    return true;
+	    if(trigState[trigIdx] == Triggering)
+	    {
+		trigCounter[trigIdx]++;
+		if(trigCounter[trigIdx] >= trigCycles[trigIdx])
+		{
+		    triggers[trigIdx]= 0; 
+		    trigState[trigIdx] = Triggered;
+		}
+	    }
+	    else if(trigState[trigIdx] == DelayingTrigger)
+	    {
+		waitCounter[trigIdx]++;
+		if(waitCounter[trigIdx] >= (uint32)waitCycles[trigIdx])
+		{
+		    REPORT_ERROR(ErrorManagement::Debug, "********Trigger  %d*********", trigIdx);
+		    triggers[trigIdx] = 1;
+		    trigState[trigIdx] = Triggering;
+		    trigCounter[trigIdx] = 0;
+		}
+	    }
 	}
     }
-    if(trigState == Triggering)
-    {
-        trigCounter++;
-	if(trigCounter >= trigCycles)
-	{
-	    *trigPtr = 0; 
-	    trigState = Triggered;
-	}
-    }
-    return true;
+    return err.ErrorsCleared();
  }
  
- 
+ ErrorManagement::ErrorType SWTrig::Execute(ExecutionInfo& info) 
+ {
+    ErrorManagement::ErrorType err;
+    if(!clockStarted && startEvent != NULL_PTR(SWTrigEvent *))
+    {
+	err = startSem.ResetWait(TTInfiniteWait);
+    }
+    if (lastTimeTicks == 0u) {
+        lastTimeTicks = HighResolutionTimer::Counter();
+    }
+    uint64 startTicks = HighResolutionTimer::Counter();
+    //If we lose cycle, rephase to a multiple of the period.
+    uint32 nCycles = 0u;
+    while (lastTimeTicks < startTicks) {
+        lastTimeTicks += sleepTimeTicks;
+        nCycles++;
+    }
+    lastTimeTicks -= sleepTimeTicks;
+
+    //Sleep until the next period. Cannot be < 0 due to while(lastTimeTicks < startTicks) above
+    uint64 sleepTicksCorrection = (startTicks - lastTimeTicks);
+    uint64 deltaTicks = sleepTimeTicks - sleepTicksCorrection;
+
+    float32 sleepTime = static_cast<float32>(static_cast<float64>(deltaTicks) * HighResolutionTimer::Period());
+    Sleep::NoMore(sleepTime);
+    lastTimeTicks = HighResolutionTimer::Counter();
+
+    err = !synchSem.Post();
+    cycles += nCycles;
+    time = triggerTime * 1E6 + cycles * timerPeriodUsecTime;
+    return err;
+}
+
  
  
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
-bool SWTrig::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
-    return true;
+bool SWTrig::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) 
+{
+    bool ok = true;
+    if (executor.GetStatus() == EmbeddedThreadI::OffState) {
+        ok = executor.Start();
+    }
+    cycles = 0u;
+    time = 0;
+    return ok;
 }
 
 bool SWTrig::Initialise(StructuredDataI& data) {
-std::cout << "INIT" << std::endl;
+    REPORT_ERROR(ErrorManagement::Debug, "Initialise");
     bool ok = DataSourceI::Initialise(data);
     if (ok) {
-	StreamString eventName;
-        ok = data.Read("TrigEvent", eventName);
+        ok = data.Read("StartEvent", startEventName);
 	if(ok)
 	{
-	    trigEvent = new SWTrigEvent((char *)eventName.Buffer(), this);
-	    trigEvent->start();
+	    startEvent = new SWTrigEvent((char *)startEventName.Buffer(), -1, this);
 	}
 	else 
-	    trigEvent = NULL_PTR(SWTrigEvent *);
+	    startEvent = NULL_PTR(SWTrigEvent *);
     }
-    ok = data.Read("WaitCycles", waitCycles);
-    if (!ok) {
-        waitCycles = 0;
-	ok = true;
-    }
-    ok = data.Read("TrigCycles", trigCycles);
-    if(!ok)
+    if(ok)
     {
-        trigCycles = 1;
-	REPORT_ERROR(ErrorManagement::Information, "No trigCycles specified. Trigger will last one cycle.");
+        frequency = 0;
+        ok = data.Read("Frequency", frequency);
+	if(!ok || frequency <= 0)
+	{
+	    ok = false;
+	    REPORT_ERROR(ErrorManagement::Information, "Clock Frequency shall be specified and shall be positive");
+	}
+	else
+	{
+	    timerPeriodUsecTime = (uint32)((1./frequency) * 1E6);
+	}
     }
-    ok = data.MoveRelative("Signals");
-    if(!ok) {
-	REPORT_ERROR(ErrorManagement::ParametersError,"Signals node Missing.");
-	return ok;
-    }
-    uint32 nOfSignals = data.GetNumberOfChildren();
-    if(nOfSignals != 1)
+    if(ok)
     {
-	  REPORT_ERROR(ErrorManagement::ParametersError,"SWTrig shall have exactly one output.");
-	  return false;
+        ok = data.Read("TriggerTime", triggerTime);
+	if(!ok)
+	{
+	    REPORT_ERROR(ErrorManagement::Information, "TriggerTime shall be specified ");
+	}
+    }
+   uint32 cpuMask, stackSize;
+   if (ok) {
+        if (!data.Read("CPUMask", cpuMask)) {
+            cpuMask = 0xFFu;
+            REPORT_ERROR(ErrorManagement::Warning, "CPUMask not specified using: %d", cpuMask);
+        }
+    }
+    if (ok) {
+       if (!data.Read("StackSize", stackSize)) {
+            stackSize = THREADS_DEFAULT_STACKSIZE;
+            REPORT_ERROR(ErrorManagement::Warning, "StackSize not specified using: %d", stackSize);
+        }
+    }
+    if (ok) {
+        ok = (stackSize > 0u);
+
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "StackSize shall be > 0u");
+        }
+    }
+    if (ok) {
+        executor.SetCPUMask(cpuMask);
+        executor.SetStackSize(stackSize);
+    }
+    if(ok)
+    {
+	ok = data.MoveRelative("Signals");
+	if(!ok) {
+	    REPORT_ERROR(ErrorManagement::ParametersError,"Signals node Missing.");
+	}
+    }
+    if(ok)
+    {
+        uint32 numSignals = data.GetNumberOfChildren();
+	ok = (numSignals >= 2);
+	if(!ok) {
+	    REPORT_ERROR(ErrorManagement::ParametersError,"At least two signals (Counter and Time) shall be defined");
+	}
+	else
+	{
+	    numTriggers = numSignals - 2;
+	    if(numTriggers > MAX_TRIGGER_OUTPUTS)
+	        numTriggers = MAX_TRIGGER_OUTPUTS;
+	    for(uint32 trigIdx = 0; trigIdx < numTriggers; trigIdx++)
+	    {
+	        StreamString currTrigName;
+		currTrigName.Printf("Trigger%d", trigIdx + 1);
+		ok = data.MoveRelative(currTrigName.Buffer());
+		if(!ok)
+		{
+		     REPORT_ERROR(ErrorManagement::ParametersError,"Cannot move to signal Trigger%d", trigIdx + 1);
+		     break;
+		}
+		ok = data.Read("TriggerEvent", trigEventNames[trigIdx]);
+		if(!ok)
+		{
+		     REPORT_ERROR(ErrorManagement::ParametersError,"Cannot read event name for Trigger%d", trigIdx + 1);
+		     break;
+		}
+		trigEvent[trigIdx] = new SWTrigEvent((char *)trigEventNames[trigIdx].Buffer(), trigIdx, this);
+		ok =  data.Read("WaitCycles", waitCycles[trigIdx]);
+		if (!ok) {
+                    waitCycles[trigIdx] = 0;
+		    ok = true;
+		}
+		ok = data.Read("TriggerCycles", trigCycles[trigIdx]);
+		if(!ok)
+                {
+		    trigCycles[trigIdx] = 1;
+		    REPORT_ERROR(ErrorManagement::Information, "No trigCycles specified for signal Trigger%d. Trigger will last one cycle.", trigIdx + 1);
+		 }
+		data.MoveToAncestor(1);
+	    }
+	}
     }
     data.MoveToAncestor(1);
-    
-std::cout << "INIT FATTA" << std::endl;
-    return true;
+    REPORT_ERROR(ErrorManagement::Debug, "Initialise Ended");
+    return ok;
 }
 
-bool SWTrig::SetConfiguredDatabase(StructuredDataI& data) {
-
-  std::cout << "SET CONFIGURED" << std::endl;
+bool SWTrig::SetConfiguredDatabase(StructuredDataI& data) 
+{
+    REPORT_ERROR(ErrorManagement::Debug, "SetConfiguredDatabase");
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     //Check signal properties and compute memory
     uint32 nOfSignals = 0u;  
@@ -191,62 +350,110 @@ bool SWTrig::SetConfiguredDatabase(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "GetFunctionNumberOfSignals() returned false");
         }
 	if (ok) {
-            ok = (nOfSignals == 1u);
+            ok = (nOfSignals >= 2u);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "The number of signals shall be exactly one");
+                REPORT_ERROR(ErrorManagement::ParametersError, "The number of signals shall be at least two");
             }
 	}
     }
 
     if(ok)
     {
-	uint32 nElements;
-	ok = GetSignalNumberOfElements(0, nElements);
-	if(!ok) 
+        for(uint sigIdx = 0; sigIdx < nOfSignals; sigIdx++)
 	{
-	    REPORT_ERROR(ErrorManagement::ParametersError,
+	    uint32 nElements;
+	    ok = GetSignalNumberOfElements(sigIdx, nElements);
+	    if(!ok) 
+	    {
+	        REPORT_ERROR(ErrorManagement::ParametersError,
                          "Error getting number of elements for signal");
-	}
-	if(nElements != 1)
-	{
-	    REPORT_ERROR(ErrorManagement::ParametersError,
-                         "Output signal shall have one element (scalar)");
-	    ok = false;
+	    }
+	    if(nElements != 1)
+	    {
+	        REPORT_ERROR(ErrorManagement::ParametersError,
+                         "Output signals shall have one element (scalar)");
+	        ok = false;
+	    }
 	}
     }
     if(ok)
     {
         uint32 nSamples;
-        ok = GetFunctionSignalSamples(InputSignals, 0u, 0, nSamples);
-         if (ok) {
-             ok = (nSamples == 1u);
-         }
-         if (!ok) {
-             REPORT_ERROR(ErrorManagement::ParametersError, "The number of samples shall be exactly 1");
-        }
+        for(uint sigIdx = 0; sigIdx < nOfSignals; sigIdx++)
+	{
+            ok = GetFunctionSignalSamples(InputSignals, 0u, 0, nSamples);
+             if (ok) {
+                 ok = (nSamples == 1u);
+             }
+             if (!ok) {
+                 REPORT_ERROR(ErrorManagement::ParametersError, "The number of samples for output signals shall be exactly 1");
+            }
+	}
     }
     TypeDescriptor type;
     if (ok) { //read the type specified in the configuration file 
         type = GetSignalType(0);
         ok = !(type == InvalidType);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Invalid type for signal");
+            REPORT_ERROR(ErrorManagement::ParametersError, "Invalid type for Counter");
         }
-        ok = (type == UnsignedInteger8Bit);
+        ok = (type == UnsignedInteger32Bit || type == SignedInteger32Bit);
 	if(!ok)
 	{
-            REPORT_ERROR(ErrorManagement::ParametersError, "Signal type shall be uint8");
+            REPORT_ERROR(ErrorManagement::ParametersError, "Counter type shall be either UnsignedInteger32Bit or SignedInteger32Bit");
 	}
     }
-
-    *trigPtr = 0;  
-    waitCounter = 0;
-    trigCounter = 0;
-    if(trigEvent == NULL_PTR(SWTrigEvent *))
-	trigState = DelayingTrigger;
-    else
-	trigState = NotTriggered;
-    std::cout << "OK: " << ok << std::endl;
+    if (ok) { //read the type specified in the configuration file 
+        type = GetSignalType(1);
+        ok = !(type == InvalidType);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Invalid type for Counter");
+        }
+        ok = (type == UnsignedInteger32Bit || type == SignedInteger32Bit);
+	if(!ok)
+	{
+            REPORT_ERROR(ErrorManagement::ParametersError, "Time type shall be either UnsignedInteger32Bit or SignedInteger32Bit");
+	}
+    }
+    if(ok)
+    {
+        for(uint trigIdx = 0; trigIdx < numTriggers; trigIdx++)
+	{
+            type = GetSignalType(2+trigIdx);
+            ok = !(type == InvalidType);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Invalid type for Trigger%d", trigIdx+1);
+            }
+            ok = (type == UnsignedInteger8Bit || type == SignedInteger8Bit);
+	    if(!ok)
+	    {
+		REPORT_ERROR(ErrorManagement::ParametersError, "Trigger%d type shall be either UnsignedInteger8Bit or SignedInteger8Bit", trigIdx+1);
+	    }
+	}
+    }
+    //Start trheads
+    if(startEvent != NULL_PTR(SWTrigEvent *))
+	startEvent->start();
+    for(uint32 trigIdx = 0; trigIdx < numTriggers; trigIdx++)
+    {
+	if(trigEvent[trigIdx] != NULL_PTR(SWTrigEvent *))
+	trigEvent[trigIdx]->start();
+    }
+    
+    for(uint trigIdx = 0; trigIdx < numTriggers; trigIdx++)
+    {
+	triggers[trigIdx] = 0;  
+        waitCounter[trigIdx] = 0;
+	trigCounter[trigIdx] = 0;
+	if(trigEvent[trigIdx] == NULL_PTR(SWTrigEvent *))
+	    trigState[trigIdx] = DelayingTrigger;
+	else
+	    trigState[trigIdx] = NotTriggered;
+    }
+    cycles = 0;
+    time = 0;
+    float64 sleepTimeT = (static_cast<float64>(HighResolutionTimer::Frequency()) / frequency);
+    sleepTimeTicks = static_cast<uint64>(sleepTimeT);
     return ok;
 }
 
