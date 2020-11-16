@@ -49,7 +49,6 @@ StreamIn::StreamIn() :
 
 StreamIn::~StreamIn() {
 //Free allocated buffers
-
     if (dataSourceMemory != NULL_PTR(char8 *)) {
         GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(dataSourceMemory));
     }
@@ -141,6 +140,11 @@ bool StreamIn::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* co
 }
 
 bool StreamIn::Synchronise() {
+  
+  
+    REPORT_ERROR(ErrorManagement::Debug, "Synchronise  SynchronizingIdx:%d bufElements[0]: %d  %d  %d", synchronizingIdx, bufElements[0], bufIdxs[0] , lastBufIdxs[0]);
+ 
+  
     started = true;
     bool ok = true;
     if(counter == 0)
@@ -160,11 +164,10 @@ bool StreamIn::Synchronise() {
         for(uint32 currEl = 0; currEl < bufElements[n]; currEl++)
         {
 	    mutexSem.FastLock();
-	    if((synchronizingIdx == (int32)n) && bufIdxs[n] == lastBufIdxs[n])
+	    if((synchronizingIdx == (int32)n))
 	    {         
-	    	eventSem.Reset();
 	    	mutexSem.FastUnLock();
-	    	eventSem.Wait();
+	    	eventSem.ResetWait(TTInfiniteWait);
 	    	mutexSem.FastLock();
 	    }
 	    if(type == Float32Bit)
@@ -453,9 +456,7 @@ bool StreamIn::SetConfiguredDatabase(StructuredDataI& data) {
 	    streamListeners[sigIdx] = new StreamListener(channelNames[sigIdx], sigIdx, streamBuffers, bufIdxs, lastBufIdxs, bufElements, &eventSem, 
 						     &mutexSem, numberOfBuffers, false, NULL, &started, &periodGuess);
 	}
-
-std::cout << "REGISTER LISTENER  " << channelNames[sigIdx].Buffer() << std::endl;
-
+        REPORT_ERROR(ErrorManagement::Debug, "REGISTER LISTENER %s", channelNames[sigIdx].Buffer());
 	evStream.registerListener(streamListeners[sigIdx], channelNames[sigIdx].Buffer());
 	bufIdxs[sigIdx] = bufElements[sigIdx] - 1;
 	lastBufIdxs[sigIdx] = 0;		
@@ -488,14 +489,14 @@ void StreamListener::dataReceived(MDSplus::Data *samples, MDSplus::Data *times, 
 	    bufArr = samples->getFloatArray();
 	    if(bufArr.size() != bufElements[signalIdx])
 	    {
-	         printf("Received array lenght %d in streaming is different from expected length %d\n", (uint32)bufArr.size(), bufElements[signalIdx] );
-		 return;
+		printf("Received array lenght %d in streaming is different from expected length %d", (uint32)bufArr.size(), bufElements[signalIdx] );
+		return;
 	    }
 	    if(timeBuffer != NULL_PTR(float32 *))
 	    {
 		timeArr = times->getFloatArray();
 	    }
-std::cout << "Received  " << samples << std::endl;
+            printf("Received %d elements from %s", (int)bufArr.size(), channelName.Buffer() );
 	} catch(MDSplus::MdsException &exc) {
 	    printf("Exception issued when getting stream: %s", exc.what());
 	}	    
@@ -519,7 +520,7 @@ std::cout << "Received  " << samples << std::endl;
 	    {
 		if(checkOverflow)
 		{
-	            printf("Overflow receiving data for channel %d",signalIdx);
+		    printf("Overflow receiving data for channel %d",signalIdx);
 	        }
 	        bufIdxs[signalIdx] += 1;
 		if(bufIdxs[signalIdx] >= nOfBuffers * bufElements[signalIdx])
@@ -562,6 +563,8 @@ std::cout << "Received  " << samples << std::endl;
 	int numTimes;
 	char clazz, dtype;
 	samples->getInfo(&clazz, &dtype);
+	printf("Received from %s : %s time: %s", channelName.Buffer(), samples->decompile(), times->decompile());
+
 	if(clazz == CLASS_A)
 	{
 	    try {
@@ -570,7 +573,6 @@ std::cout << "Received  " << samples << std::endl;
 		{
 		    timeSamples = times->getFloatArray(&numTimes); //must be equal to numSamples
 		}
-std::cout << "Received from  " << channelName.Buffer() << ":  " << samples << std::endl;
 	    } catch(MDSplus::MdsException &exc) {
 	    	printf("Exception issued when getting stream: %s", exc.what());
 		return;
@@ -580,7 +582,6 @@ std::cout << "Received from  " << channelName.Buffer() << ":  " << samples << st
 	{
 	    try {
 	        bufSample = samples->getFloat();
-std::cout << "Received "<< this << "  from  " << channelName.Buffer() << ":  " << bufSample << "   time: " << times->getLong() << std::endl;
 	        bufSamples = &bufSample;
 	        numSamples = 1;
 		if(timeBuffer != NULL_PTR(float32 *))

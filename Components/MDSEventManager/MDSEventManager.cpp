@@ -70,8 +70,9 @@ static FastPollingMutexSem eventCallbackFastMux;
 	std::string inStr(str);
 	if (inStr == "EXIT")
 	{
-	  std::cout << "MUOIO" << std::endl;
-	  kill(getpid(),SIGTERM); 
+	  std::cout << "EXITING MARTe" << std::endl;
+	  exit(0);
+	  //kill(getpid(),SIGTERM); 
 	}
 	pos1 = inStr.find(":");
 	bool ok = (pos1 != std::string::npos);
