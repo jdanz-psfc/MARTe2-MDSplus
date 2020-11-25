@@ -71,8 +71,9 @@ static FastPollingMutexSem eventCallbackFastMux;
 	if (inStr == "EXIT")
 	{
 	  std::cout << "EXITING MARTe" << std::endl;
-	  exit(0);
-	  //kill(getpid(),SIGTERM); 
+	  kill(getpid(),SIGTERM); 
+          sleep(2);
+          exit(0);
 	}
 	pos1 = inStr.find(":");
 	bool ok = (pos1 != std::string::npos);
