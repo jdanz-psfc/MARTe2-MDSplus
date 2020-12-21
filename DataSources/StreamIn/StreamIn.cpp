@@ -163,8 +163,9 @@ bool StreamIn::Synchronise() {
 	TypeDescriptor type = GetSignalType(n);
         for(uint32 currEl = 0; currEl < bufElements[n]; currEl++)
         {
-	    mutexSem.FastLock();
-	    if((synchronizingIdx == (int32)n))
+          mutexSem.FastLock();
+            //If anarray is going to be received, synchronize it only at the first element
+	    if((synchronizingIdx == (int32)n) && currEl == 0)
 	    {         
 	    	mutexSem.FastUnLock();
 	    	eventSem.ResetWait(TTInfiniteWait);
@@ -216,7 +217,7 @@ bool StreamIn::Synchronise() {
 
     }
     counter++;
-
+    
   return ok;
 }
  
@@ -363,8 +364,8 @@ bool StreamIn::SetConfiguredDatabase(StructuredDataI& data) {
 	    memset(streamBuffers[i], 0, numberOfBuffers * bufElements[i] * sizeof(float32));
 	}
 	if(synchronizingIdx >= 0)  //If this DataSource is a synchronizing one, allocate buffer for times
-	{
-      	    synchStreamTime = reinterpret_cast<float32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(numberOfBuffers * sizeof(float32)));
+	{ //Note that one time ot of bufElements[n] shall be actually used
+      	    synchStreamTime = reinterpret_cast<float32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(numberOfBuffers * bufElements[synchronizingIdx]  * sizeof(float32)));
 	}
     }
     if (ok) {
@@ -458,7 +459,7 @@ bool StreamIn::SetConfiguredDatabase(StructuredDataI& data) {
 	}
         REPORT_ERROR(ErrorManagement::Debug, "REGISTER LISTENER %s", channelNames[sigIdx].Buffer());
 	evStream.registerListener(streamListeners[sigIdx], channelNames[sigIdx].Buffer());
-	bufIdxs[sigIdx] = bufElements[sigIdx] - 1;
+	bufIdxs[sigIdx] = (numberOfBuffers - 1) * bufElements[sigIdx];
 	lastBufIdxs[sigIdx] = 0;		
     }
     evStream.start();
@@ -479,6 +480,7 @@ uint32 StreamIn::GetNumberOfBuffers() const {
 
 void StreamListener::dataReceived(MDSplus::Data *samples, MDSplus::Data *times, int shot)
 {
+    
     if(!*started) return;
     if(bufElements[signalIdx] > 1)
     {
@@ -489,16 +491,16 @@ void StreamListener::dataReceived(MDSplus::Data *samples, MDSplus::Data *times, 
 	    bufArr = samples->getFloatArray();
 	    if(bufArr.size() != bufElements[signalIdx])
 	    {
-		printf("Received array lenght %d in streaming is different from expected length %d", (uint32)bufArr.size(), bufElements[signalIdx] );
+		printf("Received array lenght %d in streaming is different from expected length %d\n", (uint32)bufArr.size(), bufElements[signalIdx] );
 		return;
 	    }
 	    if(timeBuffer != NULL_PTR(float32 *))
 	    {
 		timeArr = times->getFloatArray();
 	    }
-            printf("Received %d elements from %s", (int)bufArr.size(), channelName.Buffer() );
+            printf("Received %s(times)  %s(samples) elements from %s\n", times->decompile(), samples->decompile(), channelName.Buffer() );
 	} catch(MDSplus::MdsException &exc) {
-	    printf("Exception issued when getting stream: %s", exc.what());
+	    printf("Exception issued when getting stream: %s\n", exc.what());
 	}	    
 	
 	mutexSem->FastLock();
