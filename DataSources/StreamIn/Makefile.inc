@@ -28,7 +28,7 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
 
 #TODO Temporary to fix problem in mdsplus include
-CPPFLAGS += -Wno-error=sign-compare 
+CPPFLAGS += -Wno-error=sign-compare -DDEBUG
 
 all: $(OBJS) $(SUBPROJ) \
 	$(BUILD_DIR)/StreamIn$(DLLEXT)

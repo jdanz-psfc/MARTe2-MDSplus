@@ -97,6 +97,7 @@ public:
 	this->timeBuffer = timeBuffer;
 	this->started = started;
 	this->periodGuessPtr = periodGuessPtr;
+        memset(streamBuffers[signalIdx], 0, sizeof(float)*bufElements[signalIdx]);
     } 
     virtual ~StreamListener() {}
     virtual void dataReceived(MDSplus::Data *samples, MDSplus::Data *times, int shot);
