@@ -145,7 +145,6 @@ bool StreamOut::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
 bool StreamOut::Synchronise() {
     bool ok = true;
     uint32 n;
-
     if(timeStreaming)
     {
         for (n = 0u; (n < nOfSignals) && (ok); n++) {
@@ -195,8 +194,7 @@ bool StreamOut::Synchronise() {
         {
             float32 times[bufSamples*numSamples[timeIdx]];
             for(uint i = 0; i < bufSamples*numSamples[timeIdx]; i++)
-		times[i] = streamBuffers[timeIdx][i]/1E6;
-       
+		times[i] = streamBuffers[timeIdx][i]/1E6;       
             for (n = 0u; (n < nOfSignals) && (ok); n++) {
 	        if(n != timeIdx)
 	        {
@@ -204,7 +202,7 @@ bool StreamOut::Synchronise() {
 //			     times[0], streamBuffers[n][0]);
 		    //  if (ok) MDSplus::EventStream::send(pulseNumber, channelNames[n].Buffer(), bufSamples*numSamples[n], times, streamBuffers[n]);
 
-		    if(ok) streamManager.reportChannel(n,  bufSamples*numSamples[n], times, streamBuffers[n]);
+		    if(ok) streamManager.reportChannel(n,  bufSamples*numSamples[n], bufSamples * numSamples[timeIdx], times, streamBuffers[n]);
 		      
 		      
 		}

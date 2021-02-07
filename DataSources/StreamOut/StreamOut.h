@@ -51,6 +51,7 @@ class StreamManager
 {
     struct  BufDescr { 
       uint32 nSamples;
+      uint32 nTimes;
       float32 *samples;
       float32 *times;
       BufDescr *nxt;
@@ -112,33 +113,58 @@ public:
 	}
     }
     
-    void reportChannel(uint32 channelIdx, uint32 nSamples, float32 *times, float32 *samples)
+    void reportChannel(uint32 channelIdx, uint32 nSamples, uint32 nTimes, float32 *times, float32 *samples)
     {
-	buffers[channelIdx].nSamples = nSamples;
+        buffers[channelIdx].nSamples = nSamples;
+        buffers[channelIdx].nTimes = nTimes;
 	buffers[channelIdx].times = times;
 	buffers[channelIdx].samples = samples;
     }
     
     void sendAll(int shotNumber)
     {
-	int currSamples;
+        int currSamples;
+        int currTimes;
 	for (uint32 streamIdx = 0; streamIdx < numStreams; streamIdx++)
 	{
-	    currSamples = 0;
+	    currSamples = currTimes = 0;
 	    for(BufDescr *currBuf = heads[streamIdx].bufs; currBuf; currBuf = currBuf->nxt)
 	    {
-		for(uint32 currIdx = 0; currIdx < currBuf->nSamples; currIdx++)
-		{
-		    if(currSamples < MDSPLUS_STREAM_OUT_MAX_SAMPLES)
-		    {
-			totTimes[currSamples] = currBuf->times[currIdx];
-			totSamples[currSamples] = currBuf->samples[currIdx];
-			currSamples++;
-		    }
-		}
+                for(uint32 currIdx = 0; currIdx < currBuf->nSamples; currIdx++)
+                {
+                    if(currSamples < MDSPLUS_STREAM_OUT_MAX_SAMPLES)
+                    {
+                        totSamples[currSamples] = currBuf->samples[currIdx];
+                        currSamples++;
+                    }
+                }
+                for(uint32 currIdx = 0; currIdx < currBuf->nTimes; currIdx++)
+                {
+                    if(currTimes < MDSPLUS_STREAM_OUT_MAX_SAMPLES)
+                    {
+                        totTimes[currTimes] = currBuf->times[currIdx];
+                        currTimes++;
+                    }
+                }
 	    }
-	    MDSplus::EventStream::send(shotNumber, heads[streamIdx].chanName, currSamples, totTimes, totSamples);
-	}
+	    if(currTimes == currSamples)
+              MDSplus::EventStream::send(shotNumber, heads[streamIdx].chanName, currSamples, totTimes, totSamples);
+            else
+            {
+                MDSplus::Data *timesD, *samplesD;
+                if(currTimes == 1)
+                  timesD = new MDSplus::Float32(totTimes[0]);
+                else
+                  timesD = new MDSplus::Float32Array(totTimes, currTimes);
+                if(currSamples == 1)
+                  samplesD = new MDSplus::Float32(totSamples[0]);
+                else
+                  samplesD = new MDSplus::Float32Array(totSamples, currSamples);
+                MDSplus::EventStream::send(shotNumber, heads[streamIdx].chanName, timesD, samplesD);
+                MDSplus::deleteData(timesD);
+                MDSplus::deleteData(samplesD);
+            }
+ 	}
     }
 };
 
