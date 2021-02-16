@@ -99,9 +99,15 @@ uint WCAPI_GetModelParameterDataTypeIdx(rtwCAPI_ModelParameters* prm, int i) {
 }
 
 uint WCAPI_GetDataTypeSLId(rtwCAPI_DataTypeMap* dTypeMap, int i) {
-	
-	return rtwCAPI_GetDataTypeSLId(dTypeMap, i);
-	
+        
+        return rtwCAPI_GetDataTypeSLId(dTypeMap, i);
+        
+}
+
+uint WCAPI_GetDataEnumStorageType(rtwCAPI_DataTypeMap* dTypeMap, int i) {
+        
+        return rtwCAPI_GetDataEnumStorageType(dTypeMap, i);
+        
 }
 
 void* WCAPI_GetDataAddress(void** dataAddrMap, int i) {
@@ -182,4 +188,5 @@ uint WCAPI_GetElementDimensionIdx(rtwCAPI_ElementMap* bio, int i) {
         return rtwCAPI_GetElementDimensionIdx(bio, i);
         
 }
+
 } // extern "C"
