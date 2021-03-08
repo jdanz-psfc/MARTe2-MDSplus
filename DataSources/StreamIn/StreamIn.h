@@ -34,6 +34,7 @@
 #include "DataSourceI.h"
 #include "ProcessorType.h"
 #include "MemoryMapSynchronisedInputBroker.h"
+#include "HttpDataExportI.h"
 #include "MessageI.h"
 #include "RegisteredMethodsMessageFilter.h"
 #include "EventSem.h"
@@ -105,7 +106,7 @@ public:
 
 
 
-class StreamIn: public DataSourceI, public MessageI {
+class StreamIn: public DataSourceI, public MessageI, public HttpDataExportI{
 public:
     CLASS_REGISTER_DECLARATION()
 
@@ -237,7 +238,7 @@ private:
     FastPollingMutexSem mutexSem;
     int32 synchronizingIdx;
     StreamString *channelNames;
-    MDSplus::EventStream evStream;
+    MDSplus::EventStream **evStreams;
     StreamListener **streamListeners;
     uint32 counter;
     float32 period;

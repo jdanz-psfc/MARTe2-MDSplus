@@ -33,7 +33,7 @@ StreamIn::StreamIn() :
 	synchStreamTime = NULL_PTR(float32 *);
 	bufElements = NULL_PTR(uint32 *);
 	streamListeners = NULL_PTR(StreamListener **);
-
+        evStreams = NULL_PTR(MDSplus::EventStream **);
 	nOfSignals = 0;
         cpuMask = 0xfu;
         stackSize = 0u;
@@ -85,6 +85,12 @@ StreamIn::~StreamIn() {
         delete streamListeners[i];
       }
       GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *& >(streamListeners));
+    }
+    if(evStreams != NULL_PTR(MDSplus::EventStream**))
+    {
+      for(uint32 i = 0; i < nOfSignals - 1; i++)
+        delete evStreams[i];
+      delete [] evStreams;
     }
 }
 
@@ -443,6 +449,7 @@ bool StreamIn::SetConfiguredDatabase(StructuredDataI& data) {
 //Instantiate listeners
     streamListeners = reinterpret_cast<StreamListener **>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(StreamListener *)));
 
+    evStreams = new MDSplus::EventStream *[nOfSignals - 1];
     for (uint32 sigIdx = 0; sigIdx < nOfSignals - 1; sigIdx++) {
         if(sigIdx == (uint32)synchronizingIdx)
 	{
@@ -455,11 +462,12 @@ bool StreamIn::SetConfiguredDatabase(StructuredDataI& data) {
 						     &mutexSem, numberOfBuffers, false, NULL, &started, &periodGuess);
 	}
         REPORT_ERROR(ErrorManagement::Debug, "REGISTER LISTENER %s", channelNames[sigIdx].Buffer());
-	evStream.registerListener(streamListeners[sigIdx], channelNames[sigIdx].Buffer());
+        evStreams[sigIdx] = new MDSplus::EventStream(channelNames[sigIdx].Buffer());
+	evStreams[sigIdx]->registerListener(streamListeners[sigIdx]);
 	bufIdxs[sigIdx] = (numberOfBuffers - 1) * bufElements[sigIdx];
-	lastBufIdxs[sigIdx] = 0;		
+	lastBufIdxs[sigIdx] = 0;
+        evStreams[sigIdx]->start();
     }
-    evStream.start();
   }
    counter = 0;
    startCycleTicks = 0;

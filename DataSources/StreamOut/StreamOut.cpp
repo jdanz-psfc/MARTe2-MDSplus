@@ -263,7 +263,7 @@ bool StreamOut::Synchronise() {
                 StreamString signalName;
                 ok = GetSignalName(n, signalName);
 
-	        if (ok) MDSplus::EventStream::send(pulseNumber, signalName.Buffer(), outIdx, times, eventBuffer, true);
+	        if (ok) MDSplus::EventStream::send(pulseNumber, signalName.Buffer(), false, outIdx, times, outIdx, eventBuffer);
 	    }
 	}
 	bufIdx++;
