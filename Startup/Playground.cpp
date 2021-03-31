@@ -60,7 +60,7 @@ void PlaygroundErrorProcessFunction(const MARTe::ErrorManagement::ErrorInformati
 /*---------------------------------------------------------------------------*/
 int main(int argc, char **argv) {
     using namespace MARTe;
-    ProcessorType::SetDefaultCPUs(0x1);
+    ProcessorType::SetDefaultCPUs((MARTe::uint32)0x1);
     SetErrorProcessFunction(&PlaygroundErrorProcessFunction);
     if (argc != 5) {
         printf("Arguments are -f FILENAME -s FIRST_STATE | -m MSG_DESTINATION:MSG_FUNCTION\n");
