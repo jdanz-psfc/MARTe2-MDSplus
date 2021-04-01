@@ -152,8 +152,8 @@ public:
                     }
                 }
 	    }
-            MDSplus::EventStream::send(shotNumber, heads[streamIdx].chanName, false,  currTimes, totTimes, currSamples,totSamples);
- 	}
+            MDSplus::EventStream::send(shotNumber, heads[streamIdx].chanName, false,  currTimes, totTimes, 1, &currSamples,totSamples);
+        }
     }
 };
 
