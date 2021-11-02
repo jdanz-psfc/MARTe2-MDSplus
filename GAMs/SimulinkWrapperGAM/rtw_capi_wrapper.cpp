@@ -178,6 +178,11 @@ const char* WCAPI_GetElementName(rtwCAPI_ElementMap* bio, int i) {
         
 }
 
+uint WCAPI_GetElementOffset(rtwCAPI_ElementMap* bio, int i) {
+        return rtwCAPI_GetElementOffset(bio, i);
+        
+}
+
 uint WCAPI_GetElementDataTypeIdx(rtwCAPI_ElementMap* bio, int i) {
         
         return rtwCAPI_GetElementDataTypeIdx(bio, i);
