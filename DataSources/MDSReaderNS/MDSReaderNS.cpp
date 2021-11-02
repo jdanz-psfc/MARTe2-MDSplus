@@ -572,6 +572,10 @@ bool MDSReaderNS::Synchronise() {
 	}
     }
     numCycles++;
+#ifdef DEBUG
+    std::cout << "MDSReaderNS - TERMINATED Current time: " << currentTime << std::endl; 
+#endif   
+    
     return true;
 }
 
@@ -848,8 +852,9 @@ bool MDSReaderNS::GetNodeDataAndSamplingTime(const uint32 idx, float64 * &data, 
 std::cout << "Expr: " << dataExpr[idx].Buffer() << std::endl;      
 //        MDSplus::Data *nodeData = MDSplus::compile(dataExpr[idx].Buffer(), tree);
         MDSplus::Data *nodeData = tree->tdiCompile(dataExpr[idx].Buffer());
+std::cout << "Compiled Expr: " << dataExpr[idx].Buffer() << std::endl;      
 	int dataSamples;
-	MDSplus::Data *evalData = nodeData->data();
+	MDSplus::Data *evalData = tree->tdiData(nodeData);
 //std::cout << "Data: " << nodeData << std::endl;
 std::cout << "EvalData: " << evalData << std::endl;
 	MDSplus::deleteData(nodeData);
@@ -896,7 +901,8 @@ std::cout << "EvalData: " << evalData << std::endl;
     try {
         int dimSamples;
          MDSplus::Data *nodeTimebase = MDSplus::compile(timebaseExpr[idx].Buffer(), tree);
-	 MDSplus::Data *dataTimebase = nodeTimebase->data();
+//         MDSplus::Data *dataTimebase = nodeTimebase->data();
+         MDSplus::Data *dataTimebase = tree->tdiData(nodeTimebase);
         timebase = dataTimebase->getDoubleArray(&dimSamples);
 //std::cout << "Timebase: " << dataTimebase << std::endl;
         MDSplus::deleteData(dataTimebase);
