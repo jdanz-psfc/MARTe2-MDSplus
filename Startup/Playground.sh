@@ -27,6 +27,7 @@ LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/DataSo
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/DataSources/ConsoleOut
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/DataSources/MDSReaderNS
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/Interfaces/MDSEventManager
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/GAMs/DelayedSimulinkWrapperGAM/
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTe2_DIR/Build/x86-linux/Core/
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTe2_Components_DIR/Build/x86-linux/Components/DataSources/EpicsDataSource/
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTe2_Components_DIR/Build/x86-linux/Components/DataSources/LinuxTimer/
