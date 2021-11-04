@@ -1,0 +1,3 @@
+ipp compiled with makefile, intel/19.0.3
+
+/mpcdf/soft/SLE_15/packages/x86_64/intel_parallel_studio/2019.3/compilers_and_libraries/linux/lib/intel64/libifcoremt.so.5

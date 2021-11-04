@@ -1,0 +1,18 @@
+RABBIT wrapper for Simulink
+Works for Matlab 2015a
+
+== Stand alone tests ==
+ $ ./matlab_RABBIT.sh # sets up environment for RABBIT and start matlab 2015a
+ >> run_RABBIT_tests % run tests
+
+or:
+ ./test_RABBIT.sh # start matlab and run tests directly
+
+== To use as part of code suite (SCD, RAPTORsuite) ==
+In your matlab startup script, add the following line:
+ source set_RABBIT_env.bash # setup RABBIT environment 
+Then follow the examples in the /tests folder
+
+
+Wrapper and MATLAB interface by F. Felici, SPC-EPFL 2018 federico.felici@epfl.ch
+RABBIT code by M. Weiland, IPP Garching

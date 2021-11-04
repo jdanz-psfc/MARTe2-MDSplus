@@ -1,0 +1,3 @@
+RABBIT will always try to load namelist_used 
+This should be a (symbolic) link to whatever needs to be used in this case.
+This can be done in matlab using set_RABBIT_namelist.m

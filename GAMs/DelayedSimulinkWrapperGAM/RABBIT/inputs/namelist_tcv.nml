@@ -1,0 +1,26 @@
+&species  !the entries of the species group are ignored/overwritten in the rabbit_lib runs. (They matter only for standalone runs).
+   Aplasma=2.0
+   Zplasma=1.0   
+   Aimp=12.00
+   Zimp=6.00
+/
+&output_settings
+!  it_orbout(1)=30
+   nrhoout=21
+/
+&physics
+   jumpcor=2
+   Elimitfac=1.5
+	Rmax=1.2
+	Rmin=0.6
+    Rlim=0.624000   !for beam scraping
+	zlim=0.0
+	cxloss=.false.
+ table_path='${RABBIT_PATH}/tables/'
+ limiter_file = '${RABBIT_PATH}/inputs/limiter_tcv.dat'
+	beamlosswall=.false.
+/
+&numerics
+ norbits=30
+ orbit_dt_fac=0.5
+/

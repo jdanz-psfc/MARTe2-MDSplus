@@ -1,0 +1,98 @@
+>> RABBIT_JET_codegen_tests
+
+Setting RABBIT namelist link: 
+   ln -sf /mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/inputs/namelist_jet.nml /mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/inputs/namelist_used
+
+Environment variables:
+   RABBIT_PATH=/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT
+   IMPI_PATH=/usr/local/intel/impi/5.0.2.044/intel64/lib64
+   LD_LIBRARY_PATH=/usr/local/MATLAB/R2019bUNIPD/cefclient/sys/os/glnxa64:/usr/local/MATLAB/R2019bUNIPD/sys/opengl/lib/glnxa64:/usr/local/MATLAB/R2019bUNIPD/sys/os/glnxa64:/usr/local/MATLAB/R2019bUNIPD/bin/glnxa64:/usr/local/MATLAB/R2019bUNIPD/extern/lib/glnxa64:/usr/local/MATLAB/R2019bUNIPD/runtime/glnxa64:/usr/local/MATLAB/R2019bUNIPD/sys/java/jre/glnxa64/jre/lib/amd64/native_threads:/usr/local/MATLAB/R2019bUNIPD/sys/java/jre/glnxa64/jre/lib/amd64/server:/opt/rh/devtoolset-7/root/usr/lib64:/opt/rh/devtoolset-7/root/usr/lib:/opt/rh/devtoolset-7/root/usr/lib64/dyninst:/opt/rh/devtoolset-7/root/usr/lib/dyninst:/opt/rh/devtoolset-7/root/usr/lib64:/opt/rh/devtoolset-7/root/usr/lib:/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/lib:/usr/local/intel/impi/5.0.2.044/intel64/lib64:/usr/local/rfxlibs/lib64:/usr/local/rfxlibs/bin64:/usr/local/intel/composer_xe_2015.1.133/tbb/lib/intel64/gcc4.4:/usr/local/intel/composer_xe_2015.1.133/mkl/lib/intel64:/usr/local/intel/composer_xe_2015.1.133/ipp/lib/intel64:/usr/local/intel/composer_xe_2015.1.133/ipp/../compiler/lib/intel64:/usr/local/intel/composer_xe_2015.1.133/mpirt/lib/intel64:/usr/local/intel/composer_xe_2015.1.133/compiler/lib/intel64:/usr/local/intel/itac/9.0.2.045/intel64/slib:/usr/local/intel/itac/9.0.2.045/mic/slib:/usr/local/intel/impi/5.0.2.044/intel64/lib:/usr/local/jdk/jre/lib/amd64/server/:/home/mdsplus/hdf5/szip2.0-linux-enc/lib:/usr/local/rfxlibs/lib64:/usr/local/rfx/data_acquisition/lib64:/usr/local/mdsplus/lib:/usr/local/Pfortran/lib:/usr/local/Inag90/lib:/usr/local/Inag77/lib:/usr/local/Iimsl/lib:/usr/local/ncl_ncarg-6.4.0/lib:/usr/local/ibsimu-1.0.6/lib:/usr/local/rfxlibs/lib64:/usr/local/rfxlibs/bin64:/usr/local/intel/composer_xe_2015.1.133/tbb/lib/intel64/gcc4.4:/usr/local/intel/composer_xe_2015.1.133/mkl/lib/intel64:/usr/local/intel/composer_xe_2015.1.133/ipp/lib/intel64:/usr/local/intel/composer_xe_2015.1.133/ipp/../compiler/lib/intel64:/usr/local/intel/composer_xe_2015.1.133/mpirt/lib/intel64:/usr/local/intel/composer_xe_2015.1.133/compiler/lib/intel64:/usr/local/intel/itac/9.0.2.045/intel64/slib:/usr/local/intel/itac/9.0.2.045/mic/slib:/usr/local/intel/impi/5.0.2.044/intel64/lib:/usr/local/jdk/jre/lib/amd64/server/:/home/mdsplus/hdf5/szip2.0-linux-enc/lib:/usr/local/rfxlibs/lib64:/usr/local/rfx/data_acquisition/lib64:/usr/local/mdsplus/lib:/usr/local/Pfortran/lib:/usr/local/Inag90/lib:/usr/local/Inag77/lib:/usr/local/Iimsl/lib:/usr/local/ncl_ncarg-6.4.0/lib:/usr/local/ibsimu-1.0.6/lib:/usr/local/mdsplus/lib:/usr/local/cuda-10.0/lib64:/usr/local/ncl_ncarg-6.4.0/lib:/java/j2sdk1.4.1/jre/lib/i386/client/::/usr/java/j2sdk1.4.1/jre/lib/i386/native_threads/:/0/rfx/home/cpiron/MARTe2/MARTe2/Build/x86-linux/Core/:/java/j2sdk1.4.1/jre/lib/i386/client/::/usr/java/j2sdk1.4.1/jre/lib/i386/native_threads/:/0/rfx/home/cpiron/MARTe2/MARTe2/Build/x86-linux/Core/
+
+
+mexing RABBIT wrapper in production mode
+mex src/RABBIT_sfun.c -I./src -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/mextools ${RABBIT_PATH}/lib/libRabbitMore.so CXXFLAGS="$CXXFLAGS -fopenmp -std=c++11" LDFLAGS="$LDFLAGS -fopenmp"
+Building with 'gcc'.
+MEX completed successfully.
+
+Setting RABBIT namelist link: 
+   ln -sf /mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/inputs/namelist_jet.nml /mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/inputs/namelist_used
+
+
+ RABBIT CODEGEN TEST: START 
+
+Warning: 'CustomToolchainOptions' must be [] (empty array) when 'Toolchain' is set to "Automatically locate an installed
+toolchain". 
+Warning: Loaded model with ‘Toolchain’ set to "Automatically locate an installed toolchain" and 'BuildConfiguration' set
+to 'Specified', which is a legacy configuration. To avoid problems associated with the legacy configuration, set
+'BuildConfiguration' to 'Faster Builds' and then back to 'Specify'. This procedure sets 'Toolchain' to an explicit value
+and eliminates the warning. 
+### Starting build procedure for model: RABBIT_sfunction_test
+Warning: Loaded model with ‘Toolchain’ set to "Automatically locate an installed toolchain" and 'BuildConfiguration' set
+to 'Specified', which is a legacy configuration. To avoid problems associated with the legacy configuration, set
+'BuildConfiguration' to 'Faster Builds' and then back to 'Specify'. This procedure sets 'Toolchain' to an explicit value
+and eliminates the warning. 
+### Generating code and artifacts to 'Model specific' folder structure
+### Generating code into build folder: /mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_sfunction_test_ert_shrlib_rtw
+/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/dump/### Invoking Target Language Compiler on RABBIT_sfunction_test.rtw
+### Using System Target File: /usr/local/MATLAB/R2019bUNIPD/rtw/c/ert/ert_shrlib.tlc
+### Loading TLC function libraries
+......
+### Initial pass through model to cache user defined code
+.....
+### Caching model source code
+...............................................................................
+..............................................
+### Writing header file RABBIT_sfunction_test_types.h
+### Writing header file RABBIT_sfunction_test.h
+.
+### Writing header file rtwtypes.h
+### Writing source file RABBIT_sfunction_test.c
+### Writing header file RABBIT_sfunction_test_private.h
+### Writing source file RABBIT_sfunction_test_data.c
+### Writing header file rtmodel.h
+.
+### Writing header file rt_nonfinite.h
+### Writing source file rt_nonfinite.c
+### Writing header file rtGetInf.h
+### Writing source file rtGetInf.c
+### Writing header file rtGetNaN.h
+.
+### Writing source file rtGetNaN.c
+### TLC code generation complete.
+Running rtwmakecfg from folder: /mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT
+.
+### Processing Template Makefile: /mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/ert_unix_rabbit.tmf
+Warning: Found legacy make variables |>START_MDLREFINC_EXPAND_INCLUDES<|, |>END_MDLREFINC_EXPAND_INCLUDES<|,
+|>MODELREF_INC_PATH<| in the template makefile /mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/ert_unix_rabbit.tmf.
+The variables are no longer required. You can remove the variables. 
+Warning: Found legacy make variables |>S_FUNCTIONS<|, |>S_FUNCTIONS_OBJ<| in the template makefile
+/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/ert_unix_rabbit.tmf. The variables are no longer required. You can
+remove the variables. 
+Warning: Found legacy make variables |>START_EXPAND_MODELREF_SIM_EXTRA_LIBS<|, |>END_EXPAND_MODELREF_SIM_EXTRA_LIBS<|,
+|>EXPAND_MODELREF_SIM_EXTRA_LIB<| in the template makefile
+/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/ert_unix_rabbit.tmf. The variables are no longer required. You can
+remove the variables. 
+Warning: Found legacy make variables |>SHARED_BIN_DIR<|, |>SHARED_LIB<|, |>SHARED_SRC<|, |>SHARED_SRC_DIR<| in the
+template makefile /mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/ert_unix_rabbit.tmf. The variables are no longer
+required. You can remove the variables. 
+### /mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_sfunction_test_ert_shrlib_rtw/RABBIT_sfunction_test.mk which is generated from /mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/ert_unix_rabbit.tmf is up to date
+### Building RABBIT_sfunction_test: /usr/local/MATLAB/R2019bUNIPD/bin/glnxa64/gmake -f RABBIT_sfunction_test.mk  GENERATE_ASAP2=0 OPTS="-DRT -DUSE_RTMODEL -DERT"
+gcc -c -ansi -pedantic -Wno-long-long -fwrapv -fPIC  -O0 -DRT -DUSE_RTMODEL -DERT  -DMODEL=RABBIT_sfunction_test -DNUMST=1 -DNCSTATES=0 -DUNIX -DMAT_FILE=0 -DINTEGER_CODE=0 -DONESTEPFCN=1 -DTERMFCN=1 -DHAVESTDIO -DMULTI_INSTANCE_CODE=0 -DCLASSIC_INTERFACE=0 -DALLOCATIONFCN=0 -DMT=0 -I. -I.. -I/usr/local/MATLAB/R2019bUNIPD/extern/include -I/usr/local/MATLAB/R2019bUNIPD/simulink/include -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src/ext_mode/common -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_sfunction_test_ert_shrlib_rtw -I/usr/local/MATLAB/R2019bUNIPD/extern/include -I/usr/local/MATLAB/R2019bUNIPD/simulink/include -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src/ext_mode/common -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/ert -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/mextools -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/lib       "RABBIT_sfunction_test_data.c"
+gcc -c -ansi -pedantic -Wno-long-long -fwrapv -fPIC  -O0 -DRT -DUSE_RTMODEL -DERT  -DMODEL=RABBIT_sfunction_test -DNUMST=1 -DNCSTATES=0 -DUNIX -DMAT_FILE=0 -DINTEGER_CODE=0 -DONESTEPFCN=1 -DTERMFCN=1 -DHAVESTDIO -DMULTI_INSTANCE_CODE=0 -DCLASSIC_INTERFACE=0 -DALLOCATIONFCN=0 -DMT=0 -I. -I.. -I/usr/local/MATLAB/R2019bUNIPD/extern/include -I/usr/local/MATLAB/R2019bUNIPD/simulink/include -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src/ext_mode/common -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_sfunction_test_ert_shrlib_rtw -I/usr/local/MATLAB/R2019bUNIPD/extern/include -I/usr/local/MATLAB/R2019bUNIPD/simulink/include -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src/ext_mode/common -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/ert -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/mextools -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/lib       "rtGetInf.c"
+gcc -c -ansi -pedantic -Wno-long-long -fwrapv -fPIC  -O0 -DRT -DUSE_RTMODEL -DERT  -DMODEL=RABBIT_sfunction_test -DNUMST=1 -DNCSTATES=0 -DUNIX -DMAT_FILE=0 -DINTEGER_CODE=0 -DONESTEPFCN=1 -DTERMFCN=1 -DHAVESTDIO -DMULTI_INSTANCE_CODE=0 -DCLASSIC_INTERFACE=0 -DALLOCATIONFCN=0 -DMT=0 -I. -I.. -I/usr/local/MATLAB/R2019bUNIPD/extern/include -I/usr/local/MATLAB/R2019bUNIPD/simulink/include -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src/ext_mode/common -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_sfunction_test_ert_shrlib_rtw -I/usr/local/MATLAB/R2019bUNIPD/extern/include -I/usr/local/MATLAB/R2019bUNIPD/simulink/include -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src/ext_mode/common -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/ert -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/mextools -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/lib       "rtGetNaN.c"
+gcc -c -ansi -pedantic -Wno-long-long -fwrapv -fPIC  -O0 -DRT -DUSE_RTMODEL -DERT  -DMODEL=RABBIT_sfunction_test -DNUMST=1 -DNCSTATES=0 -DUNIX -DMAT_FILE=0 -DINTEGER_CODE=0 -DONESTEPFCN=1 -DTERMFCN=1 -DHAVESTDIO -DMULTI_INSTANCE_CODE=0 -DCLASSIC_INTERFACE=0 -DALLOCATIONFCN=0 -DMT=0 -I. -I.. -I/usr/local/MATLAB/R2019bUNIPD/extern/include -I/usr/local/MATLAB/R2019bUNIPD/simulink/include -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src/ext_mode/common -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_sfunction_test_ert_shrlib_rtw -I/usr/local/MATLAB/R2019bUNIPD/extern/include -I/usr/local/MATLAB/R2019bUNIPD/simulink/include -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src/ext_mode/common -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/ert -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/mextools -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/lib       "rt_nonfinite.c"
+gcc -c -ansi -pedantic -Wno-long-long -fwrapv -fPIC  -O0 -DRT -DUSE_RTMODEL -DERT  -DMODEL=RABBIT_sfunction_test -DNUMST=1 -DNCSTATES=0 -DUNIX -DMAT_FILE=0 -DINTEGER_CODE=0 -DONESTEPFCN=1 -DTERMFCN=1 -DHAVESTDIO -DMULTI_INSTANCE_CODE=0 -DCLASSIC_INTERFACE=0 -DALLOCATIONFCN=0 -DMT=0 -I. -I.. -I/usr/local/MATLAB/R2019bUNIPD/extern/include -I/usr/local/MATLAB/R2019bUNIPD/simulink/include -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src/ext_mode/common -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_sfunction_test_ert_shrlib_rtw -I/usr/local/MATLAB/R2019bUNIPD/extern/include -I/usr/local/MATLAB/R2019bUNIPD/simulink/include -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src/ext_mode/common -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/ert -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/mextools -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/lib       "RABBIT_sfunction_test.c"
+g++ -shared -Wl,--no-undefined -Wl,--version-script,RABBIT_sfunction_test.def -o RABBIT_sfunction_test.so -L/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/lib -lRabbitMore rt_matrx.o rt_printf.o RABBIT_sfunction_test_data.o rtGetInf.o rtGetNaN.o rt_nonfinite.o RABBIT_sfun.o RABBIT_sfunction_test.o  -Wl,--start-group  -Wl,--end-group        -lm
+### Created shared object: RABBIT_sfunction_test.so
+
+### Successful completion of build procedure for model: RABBIT_sfunction_test
+### Simulink cache artifacts for 'RABBIT_sfunction_test' were created in '/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CacheFolder/RABBIT_sfunction_test.slxc'.
+
+ RABBIT CODEGEN: DONE 
+
+
+ans =
+
+  logical
+
+   1

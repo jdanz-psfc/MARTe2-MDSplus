@@ -1,0 +1,254 @@
+>> RABBIT_JET_codegen_tests
+
+Setting RABBIT namelist link: 
+   ln -sf /mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/inputs/namelist_jet.nml /mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/inputs/namelist_used
+
+Environment variables:
+   RABBIT_PATH=/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT
+   IMPI_PATH=/usr/local/intel/impi/5.0.2.044/intel64/lib64
+   LD_LIBRARY_PATH=/usr/local/MATLAB/R2019bUNIPD/cefclient/sys/os/glnxa64:/usr/local/MATLAB/R2019bUNIPD/sys/opengl/lib/glnxa64:/usr/local/MATLAB/R2019bUNIPD/sys/os/glnxa64:/usr/local/MATLAB/R2019bUNIPD/bin/glnxa64:/usr/local/MATLAB/R2019bUNIPD/extern/lib/glnxa64:/usr/local/MATLAB/R2019bUNIPD/runtime/glnxa64:/usr/local/MATLAB/R2019bUNIPD/sys/java/jre/glnxa64/jre/lib/amd64/native_threads:/usr/local/MATLAB/R2019bUNIPD/sys/java/jre/glnxa64/jre/lib/amd64/server:/opt/rh/devtoolset-7/root/usr/lib64:/opt/rh/devtoolset-7/root/usr/lib:/opt/rh/devtoolset-7/root/usr/lib64/dyninst:/opt/rh/devtoolset-7/root/usr/lib/dyninst:/opt/rh/devtoolset-7/root/usr/lib64:/opt/rh/devtoolset-7/root/usr/lib:/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/lib:/usr/local/intel/impi/5.0.2.044/intel64/lib64:/usr/local/rfxlibs/lib64:/usr/local/rfxlibs/bin64:/usr/local/intel/composer_xe_2015.1.133/tbb/lib/intel64/gcc4.4:/usr/local/intel/composer_xe_2015.1.133/mkl/lib/intel64:/usr/local/intel/composer_xe_2015.1.133/ipp/lib/intel64:/usr/local/intel/composer_xe_2015.1.133/ipp/../compiler/lib/intel64:/usr/local/intel/composer_xe_2015.1.133/mpirt/lib/intel64:/usr/local/intel/composer_xe_2015.1.133/compiler/lib/intel64:/usr/local/intel/itac/9.0.2.045/intel64/slib:/usr/local/intel/itac/9.0.2.045/mic/slib:/usr/local/intel/impi/5.0.2.044/intel64/lib:/usr/local/jdk/jre/lib/amd64/server/:/home/mdsplus/hdf5/szip2.0-linux-enc/lib:/usr/local/rfxlibs/lib64:/usr/local/rfx/data_acquisition/lib64:/usr/local/mdsplus/lib:/usr/local/Pfortran/lib:/usr/local/Inag90/lib:/usr/local/Inag77/lib:/usr/local/Iimsl/lib:/usr/local/ncl_ncarg-6.4.0/lib:/usr/local/ibsimu-1.0.6/lib:/usr/local/rfxlibs/lib64:/usr/local/rfxlibs/bin64:/usr/local/intel/composer_xe_2015.1.133/tbb/lib/intel64/gcc4.4:/usr/local/intel/composer_xe_2015.1.133/mkl/lib/intel64:/usr/local/intel/composer_xe_2015.1.133/ipp/lib/intel64:/usr/local/intel/composer_xe_2015.1.133/ipp/../compiler/lib/intel64:/usr/local/intel/composer_xe_2015.1.133/mpirt/lib/intel64:/usr/local/intel/composer_xe_2015.1.133/compiler/lib/intel64:/usr/local/intel/itac/9.0.2.045/intel64/slib:/usr/local/intel/itac/9.0.2.045/mic/slib:/usr/local/intel/impi/5.0.2.044/intel64/lib:/usr/local/jdk/jre/lib/amd64/server/:/home/mdsplus/hdf5/szip2.0-linux-enc/lib:/usr/local/rfxlibs/lib64:/usr/local/rfx/data_acquisition/lib64:/usr/local/mdsplus/lib:/usr/local/Pfortran/lib:/usr/local/Inag90/lib:/usr/local/Inag77/lib:/usr/local/Iimsl/lib:/usr/local/ncl_ncarg-6.4.0/lib:/usr/local/ibsimu-1.0.6/lib:/usr/local/mdsplus/lib:/usr/local/cuda-10.0/lib64:/usr/local/ncl_ncarg-6.4.0/lib:/java/j2sdk1.4.1/jre/lib/i386/client/::/usr/java/j2sdk1.4.1/jre/lib/i386/native_threads/:/0/rfx/home/cpiron/MARTe2/MARTe2/Build/x86-linux/Core/:/java/j2sdk1.4.1/jre/lib/i386/client/::/usr/java/j2sdk1.4.1/jre/lib/i386/native_threads/:/0/rfx/home/cpiron/MARTe2/MARTe2/Build/x86-linux/Core/
+
+
+mexing RABBIT wrapper in production mode
+mex src/RABBIT_sfun.c -I./src -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/mextools ${RABBIT_PATH}/lib/libRabbitMore.so CXXFLAGS="$CXXFLAGS -fopenmp -std=c++11" LDFLAGS="$LDFLAGS -fopenmp"
+Building with 'gcc'.
+MEX completed successfully.
+
+Setting RABBIT namelist link: 
+   ln -sf /mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/inputs/namelist_jet.nml /mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/inputs/namelist_used
+
+
+ RABBIT CODEGEN TEST: START 
+
+Target definition is different from that in the model. Updating target according to the new definition. The following parameters were updated: 
+	ShowEliminatedStatement
+### Starting build procedure for model: RABBIT_JET
+/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/dump/Warning: A terminate function is necessary, however the code generation process did not generate a terminate function
+because the 'Terminate function required' check box is cleared. 
+Running rtwmakecfg from folder: /mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT
+### Build procedure for model: 'RABBIT_JET' aborted due to an error.
+Error using coder.make.Builder/coder_diagnose
+gcc -c -fwrapv -ansi -pedantic -Wno-long-long -fPIC -O3 -fno-loop-optimize -fno-aggressive-loop-optimizations
+-DCLASSIC_INTERFACE=0 -DALLOCATIONFCN=1 -DTERMFCN=0 -DONESTEPFCN=1 -DMAT_FILE=0 -DMULTI_INSTANCE_CODE=1 -DINTEGER_CODE=0
+-DMT=0  -DTID01EQ=0 -DRT_MALLOC -DRT -DUSE_RTMODEL -DERT -DMODEL=RABBIT_JET -DNUMST=1 -DNCSTATES=0 -DHAVESTDIO
+-DMODEL_HAS_DYNAMICALLY_LOADED_SFCNS=0 -DUNIX
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_JET_ert_shrlib_rtw
+-I/usr/local/MATLAB/R2019bUNIPD/extern/include -I/usr/local/MATLAB/R2019bUNIPD/simulink/include
+-I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src/ext_mode/common
+-I/usr/local/MATLAB/R2019bUNIPD/rtw/c/ert -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/mextools
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/lib -o "rt_matrx.o"
+"/usr/local/MATLAB/R2019bUNIPD/rtw/c/src/rt_matrx.c"
+gcc -c -fwrapv -ansi -pedantic -Wno-long-long -fPIC -O3 -fno-loop-optimize -fno-aggressive-loop-optimizations
+-DCLASSIC_INTERFACE=0 -DALLOCATIONFCN=1 -DTERMFCN=0 -DONESTEPFCN=1 -DMAT_FILE=0 -DMULTI_INSTANCE_CODE=1 -DINTEGER_CODE=0
+-DMT=0  -DTID01EQ=0 -DRT_MALLOC -DRT -DUSE_RTMODEL -DERT -DMODEL=RABBIT_JET -DNUMST=1 -DNCSTATES=0 -DHAVESTDIO
+-DMODEL_HAS_DYNAMICALLY_LOADED_SFCNS=0 -DUNIX
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_JET_ert_shrlib_rtw
+-I/usr/local/MATLAB/R2019bUNIPD/extern/include -I/usr/local/MATLAB/R2019bUNIPD/simulink/include
+-I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src/ext_mode/common
+-I/usr/local/MATLAB/R2019bUNIPD/rtw/c/ert -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/mextools
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/lib -o "rt_printf.o"
+"/usr/local/MATLAB/R2019bUNIPD/rtw/c/src/rt_printf.c"
+gcc -c -fwrapv -ansi -pedantic -Wno-long-long -fPIC -O3 -fno-loop-optimize -fno-aggressive-loop-optimizations
+-DCLASSIC_INTERFACE=0 -DALLOCATIONFCN=1 -DTERMFCN=0 -DONESTEPFCN=1 -DMAT_FILE=0 -DMULTI_INSTANCE_CODE=1 -DINTEGER_CODE=0
+-DMT=0  -DTID01EQ=0 -DRT_MALLOC -DRT -DUSE_RTMODEL -DERT -DMODEL=RABBIT_JET -DNUMST=1 -DNCSTATES=0 -DHAVESTDIO
+-DMODEL_HAS_DYNAMICALLY_LOADED_SFCNS=0 -DUNIX
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_JET_ert_shrlib_rtw
+-I/usr/local/MATLAB/R2019bUNIPD/extern/include -I/usr/local/MATLAB/R2019bUNIPD/simulink/include
+-I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src/ext_mode/common
+-I/usr/local/MATLAB/R2019bUNIPD/rtw/c/ert -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/mextools
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/lib -o "RABBIT_JET.o"
+"/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_JET_ert_shrlib_rtw/RABBIT_JET.c"
+/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_JET_ert_shrlib_rtw/RABBIT_JET.c:10:7:
+warning: invoking macro CONCAT argument 3: empty macro arguments are undefined in ISO C90 [-Wpedantic]
+ void* GET_MMI_FUNC(void* voidPtrToRealTimeStructure)
+       ^~~~~~~~~~~~
+/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_JET_ert_shrlib_rtw/RABBIT_JET.c:10:7:
+warning: invoking macro CONCAT_ argument 3: empty macro arguments are undefined in ISO C90 [-Wpedantic]
+gcc -c -fwrapv -ansi -pedantic -Wno-long-long -fPIC -O3 -fno-loop-optimize -fno-aggressive-loop-optimizations
+-DCLASSIC_INTERFACE=0 -DALLOCATIONFCN=1 -DTERMFCN=0 -DONESTEPFCN=1 -DMAT_FILE=0 -DMULTI_INSTANCE_CODE=1 -DINTEGER_CODE=0
+-DMT=0  -DTID01EQ=0 -DRT_MALLOC -DRT -DUSE_RTMODEL -DERT -DMODEL=RABBIT_JET -DNUMST=1 -DNCSTATES=0 -DHAVESTDIO
+-DMODEL_HAS_DYNAMICALLY_LOADED_SFCNS=0 -DUNIX
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_JET_ert_shrlib_rtw
+-I/usr/local/MATLAB/R2019bUNIPD/extern/include -I/usr/local/MATLAB/R2019bUNIPD/simulink/include
+-I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src/ext_mode/common
+-I/usr/local/MATLAB/R2019bUNIPD/rtw/c/ert -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/mextools
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/lib -o "RABBIT_JET_capi.o"
+"/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_JET_ert_shrlib_rtw/RABBIT_JET_capi.c"
+gcc -c -fwrapv -ansi -pedantic -Wno-long-long -fPIC -O3 -fno-loop-optimize -fno-aggressive-loop-optimizations
+-DCLASSIC_INTERFACE=0 -DALLOCATIONFCN=1 -DTERMFCN=0 -DONESTEPFCN=1 -DMAT_FILE=0 -DMULTI_INSTANCE_CODE=1 -DINTEGER_CODE=0
+-DMT=0  -DTID01EQ=0 -DRT_MALLOC -DRT -DUSE_RTMODEL -DERT -DMODEL=RABBIT_JET -DNUMST=1 -DNCSTATES=0 -DHAVESTDIO
+-DMODEL_HAS_DYNAMICALLY_LOADED_SFCNS=0 -DUNIX
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_JET_ert_shrlib_rtw
+-I/usr/local/MATLAB/R2019bUNIPD/extern/include -I/usr/local/MATLAB/R2019bUNIPD/simulink/include
+-I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src/ext_mode/common
+-I/usr/local/MATLAB/R2019bUNIPD/rtw/c/ert -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/mextools
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/lib -o "RABBIT_JET_data.o"
+"/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_JET_ert_shrlib_rtw/RABBIT_JET_data.c"
+gcc -c -fwrapv -ansi -pedantic -Wno-long-long -fPIC -O3 -fno-loop-optimize -fno-aggressive-loop-optimizations
+-DCLASSIC_INTERFACE=0 -DALLOCATIONFCN=1 -DTERMFCN=0 -DONESTEPFCN=1 -DMAT_FILE=0 -DMULTI_INSTANCE_CODE=1 -DINTEGER_CODE=0
+-DMT=0  -DTID01EQ=0 -DRT_MALLOC -DRT -DUSE_RTMODEL -DERT -DMODEL=RABBIT_JET -DNUMST=1 -DNCSTATES=0 -DHAVESTDIO
+-DMODEL_HAS_DYNAMICALLY_LOADED_SFCNS=0 -DUNIX
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_JET_ert_shrlib_rtw
+-I/usr/local/MATLAB/R2019bUNIPD/extern/include -I/usr/local/MATLAB/R2019bUNIPD/simulink/include
+-I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src/ext_mode/common
+-I/usr/local/MATLAB/R2019bUNIPD/rtw/c/ert -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/mextools
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/lib -o "rtGetInf.o"
+"/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_JET_ert_shrlib_rtw/rtGetInf.c"
+gcc -c -fwrapv -ansi -pedantic -Wno-long-long -fPIC -O3 -fno-loop-optimize -fno-aggressive-loop-optimizations
+-DCLASSIC_INTERFACE=0 -DALLOCATIONFCN=1 -DTERMFCN=0 -DONESTEPFCN=1 -DMAT_FILE=0 -DMULTI_INSTANCE_CODE=1 -DINTEGER_CODE=0
+-DMT=0  -DTID01EQ=0 -DRT_MALLOC -DRT -DUSE_RTMODEL -DERT -DMODEL=RABBIT_JET -DNUMST=1 -DNCSTATES=0 -DHAVESTDIO
+-DMODEL_HAS_DYNAMICALLY_LOADED_SFCNS=0 -DUNIX
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_JET_ert_shrlib_rtw
+-I/usr/local/MATLAB/R2019bUNIPD/extern/include -I/usr/local/MATLAB/R2019bUNIPD/simulink/include
+-I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src/ext_mode/common
+-I/usr/local/MATLAB/R2019bUNIPD/rtw/c/ert -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/mextools
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/lib -o "rtGetNaN.o"
+"/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_JET_ert_shrlib_rtw/rtGetNaN.c"
+gcc -c -fwrapv -ansi -pedantic -Wno-long-long -fPIC -O3 -fno-loop-optimize -fno-aggressive-loop-optimizations
+-DCLASSIC_INTERFACE=0 -DALLOCATIONFCN=1 -DTERMFCN=0 -DONESTEPFCN=1 -DMAT_FILE=0 -DMULTI_INSTANCE_CODE=1 -DINTEGER_CODE=0
+-DMT=0  -DTID01EQ=0 -DRT_MALLOC -DRT -DUSE_RTMODEL -DERT -DMODEL=RABBIT_JET -DNUMST=1 -DNCSTATES=0 -DHAVESTDIO
+-DMODEL_HAS_DYNAMICALLY_LOADED_SFCNS=0 -DUNIX
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_JET_ert_shrlib_rtw
+-I/usr/local/MATLAB/R2019bUNIPD/extern/include -I/usr/local/MATLAB/R2019bUNIPD/simulink/include
+-I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src/ext_mode/common
+-I/usr/local/MATLAB/R2019bUNIPD/rtw/c/ert -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/mextools
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/lib -o "rt_malloc_error.o"
+"/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_JET_ert_shrlib_rtw/rt_malloc_error.c"
+gcc -c -fwrapv -ansi -pedantic -Wno-long-long -fPIC -O3 -fno-loop-optimize -fno-aggressive-loop-optimizations
+-DCLASSIC_INTERFACE=0 -DALLOCATIONFCN=1 -DTERMFCN=0 -DONESTEPFCN=1 -DMAT_FILE=0 -DMULTI_INSTANCE_CODE=1 -DINTEGER_CODE=0
+-DMT=0  -DTID01EQ=0 -DRT_MALLOC -DRT -DUSE_RTMODEL -DERT -DMODEL=RABBIT_JET -DNUMST=1 -DNCSTATES=0 -DHAVESTDIO
+-DMODEL_HAS_DYNAMICALLY_LOADED_SFCNS=0 -DUNIX
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_JET_ert_shrlib_rtw
+-I/usr/local/MATLAB/R2019bUNIPD/extern/include -I/usr/local/MATLAB/R2019bUNIPD/simulink/include
+-I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src/ext_mode/common
+-I/usr/local/MATLAB/R2019bUNIPD/rtw/c/ert -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/mextools
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/lib -o "rt_nonfinite.o"
+"/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_JET_ert_shrlib_rtw/rt_nonfinite.c"
+gcc -c -fwrapv -ansi -pedantic -Wno-long-long -fPIC -O3 -fno-loop-optimize -fno-aggressive-loop-optimizations
+-DCLASSIC_INTERFACE=0 -DALLOCATIONFCN=1 -DTERMFCN=0 -DONESTEPFCN=1 -DMAT_FILE=0 -DMULTI_INSTANCE_CODE=1 -DINTEGER_CODE=0
+-DMT=0  -DTID01EQ=0 -DRT_MALLOC -DRT -DUSE_RTMODEL -DERT -DMODEL=RABBIT_JET -DNUMST=1 -DNCSTATES=0 -DHAVESTDIO
+-DMODEL_HAS_DYNAMICALLY_LOADED_SFCNS=0 -DUNIX
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/codegen/CodeGenFolder/RABBIT_JET_ert_shrlib_rtw
+-I/usr/local/MATLAB/R2019bUNIPD/extern/include -I/usr/local/MATLAB/R2019bUNIPD/simulink/include
+-I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src -I/usr/local/MATLAB/R2019bUNIPD/rtw/c/src/ext_mode/common
+-I/usr/local/MATLAB/R2019bUNIPD/rtw/c/ert -I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/mextools
+-I/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/lib -o "RABBIT_sfun.o"
+"/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src/RABBIT_sfun.c"
+/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src/RABBIT_sfun.c: In function ‘mdlStart’:
+/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src/RABBIT_sfun.c:183:3: warning: ISO C90 forbids variable length
+array ‘ierr’ [-Wvla]
+   int ierr[nsource];
+   ^~~
+/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src/RABBIT_sfun.c:243:3: warning: ISO C90 forbids mixed declarations
+and code [-Wdeclaration-after-statement]
+   char *dumpdir1 = getenv("RABBIT_PATH");
+   ^~~~
+/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src/RABBIT_sfun.c:249:3: warning: ISO C90 forbids mixed declarations
+and code [-Wdeclaration-after-statement]
+   int32_t dumpdir_len = strlen(dumpdir);
+   ^~~~~~~
+/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src/RABBIT_sfun.c:251:3: warning: ISO C90 forbids variable length
+array ‘einjarr’ [-Wvla]
+   double einjarr[nsource];
+   ^~~~~~
+/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src/RABBIT_sfun.c:251:3: warning: ISO C90 forbids mixed declarations
+and code [-Wdeclaration-after-statement]
+/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src/RABBIT_sfun.c:252:3: warning: ISO C90 forbids variable length
+array ‘specmixarr’ [-Wvla]
+   double specmixarr[nsource*nv];
+   ^~~~~~
+/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src/RABBIT_sfun.c: In function ‘mdlOutputs’:
+/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src/RABBIT_sfun.c:291:3: warning: ISO C90 forbids mixed declarations
+and code [-Wdeclaration-after-statement]
+   InputRealPtrsType rhotor_kinprof = ssGetInputPortRealSignalPtrs(S,0);
+   ^~~~~~~~~~~~~~~~~
+/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src/RABBIT_sfun.c: In function ‘mdlTerminate’:
+/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/src/RABBIT_sfun.c:407:3: warning: ISO C90 forbids variable length
+array ‘ierr’ [-Wvla]
+   int ierr[nsource];
+   ^~~
+### Creating shared library ../RABBIT_JET.so ...
+
+g++ -shared -Wl,--no-undefined -Wl,--version-script,RABBIT_sfunction_test.def -o RABBIT_sfunction_test.so -L/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/lib -lRabbitMore rt_matrx.o rt_printf.o RABBIT_sfunction_test_data.o rtGetInf.o rtGetNaN.o rt_nonfinite.o RABBIT_sfun.o RABBIT_sfunction_test.o  -Wl,--start-group  -Wl,--end-group        -lm
+
+
+
+g++ -shared -Wl,--no-undefined -Wl,--version-script,RABBIT_JET.def -o RABBIT_JET.so -L/mnt/N41a/home_exp2/cpiron/RAPTORsuite/modules/RABBIT/lib -lRabbitMore rt_matrx.o rt_printf.o RABBIT_JET.o RABBIT_JET_capi.o RABBIT_JET_data.o rtGetInf.o rtGetNaN.o rt_malloc_error.o rt_nonfinite.o RABBIT_sfun.o -Wl,--start-group  -Wl,--end-group        -lm
+RABBIT_sfun.o: In function `mdlOutputs':
+RABBIT_sfun.c:(.text+0x394): undefined reference to `rabbit_lib_step'
+RABBIT_sfun.o: In function `mdlTerminate':
+RABBIT_sfun.c:(.text+0x41b): undefined reference to `rabbit_lib_deinit'
+RABBIT_sfun.o: In function `mdlStart':
+RABBIT_sfun.c:(.text+0x63d): undefined reference to `rabbit_lib_init'
+RABBIT_sfun.c:(.text+0x700): undefined reference to `rabbit_lib_set_dump_dir'
+RABBIT_sfun.c:(.text+0x73d): undefined reference to `rabbit_lib_dump_beams'
+collect2: error: ld returned 1 exit status
+gmake: *** [../RABBIT_JET.so] Error 1
+
+Error(s) encountered while building "RABBIT_JET":
+### Failed to generate all binary outputs.
+
+Error in coder.make.Builder/coder_build
+
+Error in coder.make.Builder/run
+
+Error in coder.make.invokeBuilder
+
+Error in RTW/genMakefileAndBuild (line 301)
+    buildResults = coder.make.invokeBuilder...
+
+Error in coder.internal.compileStage
+
+Error in coder.internal.ModelBuilder/buildProcedure (line 1562)
+                compileResult = coder.internal.compileStage...
+
+Error in coder.internal.ModelBuilder/make_rtw (line 218)
+                [buildResult, mainObjFolder] = buildProcedure...
+
+Error in coder.internal.ModelCodegenMgr/make_rtw (line 8)
+    [buildResult, mainObjFolder] = obj.make_rtw(varargin);
+
+Error in make_rtw (line 20)
+[buildResult, mainObjFolder] = h.make_rtw(buildArgs, varargin{:});
+
+Error in build_target
+
+Error in build_target
+
+Error in build_standalone_rtw_target
+
+Error in slbuild_private
+
+Error in slbuild_private
+
+Error in sl (line 15)
+[varargout{1:nargout}]=feval(varargin{:});
+
+Error in slbuild (line 98)
+   sl('slbuild_private', mdl, target, varargin{2:end});
+
+Error in rtwbuild (line 235)
+              slbuild(sys, 'StandaloneCoderTarget', ...
+
+Error in RABBIT_JET_codegen_tests (line 11)
+rtwbuild(modelname,'ForceTopModelBuild',true);
