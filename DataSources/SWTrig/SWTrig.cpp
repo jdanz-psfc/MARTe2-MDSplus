@@ -20,6 +20,8 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
+//#define DEBUG 1
+  
 SWTrig::SWTrig():  DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this)
 {
 
@@ -165,6 +167,9 @@ bool SWTrig::Synchronise() {
 	    }
 	}
     }
+#ifdef DEBUG
+     REPORT_ERROR(ErrorManagement::Debug, "clock tick");
+#endif   
     return err.ErrorsCleared();
  }
  
@@ -243,7 +248,8 @@ bool SWTrig::Initialise(StructuredDataI& data) {
     }
     if(ok)
     {
-        ok = data.Read("TriggerTime", triggerTime);
+//        ok = data.Read("TriggerTime", triggerTime);
+        ok = data.Read("StartTime", triggerTime);
 	if(!ok)
 	{
 	    REPORT_ERROR(ErrorManagement::Information, "TriggerTime shall be specified ");
