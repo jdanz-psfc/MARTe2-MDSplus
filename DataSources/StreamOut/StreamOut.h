@@ -45,12 +45,13 @@ namespace MARTe {
 /**
  
  * */
-#define MDSPLUS_STREAM_OUT_MAX_SAMPLES 512
+#define MDSPLUS_STREAM_OUT_MAX_SAMPLES 16000
 //Support class for packing channels
 class StreamManager
 {
     struct  BufDescr { 
       uint32 nSamples;
+      uint32 nElements;
       uint32 nTimes;
       float32 *samples;
       float32 *times;
@@ -113,9 +114,10 @@ public:
 	}
     }
     
-    void reportChannel(uint32 channelIdx, uint32 nSamples, uint32 nTimes, float32 *times, float32 *samples)
+    void reportChannel(uint32 channelIdx, uint32 nSamples, uint32 nElements,  uint32 nTimes, float32 *times, float32 *samples)
     {
         buffers[channelIdx].nSamples = nSamples;
+        buffers[channelIdx].nElements = nElements;
         buffers[channelIdx].nTimes = nTimes;
 	buffers[channelIdx].times = times;
 	buffers[channelIdx].samples = samples;
@@ -131,7 +133,7 @@ public:
             bool firstBuffer = true;
 	    for(BufDescr *currBuf = heads[streamIdx].bufs; currBuf; currBuf = currBuf->nxt)
 	    {
-                for(uint32 currIdx = 0; currIdx < currBuf->nSamples; currIdx++)
+                for(uint32 currIdx = 0; currIdx < currBuf->nSamples * currBuf->nElements; currIdx++)
                 {
                     if(currSamples < MDSPLUS_STREAM_OUT_MAX_SAMPLES)
                     {
@@ -152,7 +154,17 @@ public:
                     }
                 }
 	    }
-            MDSplus::EventStream::send(shotNumber, heads[streamIdx].chanName, false,  currTimes, totTimes, 1, &currSamples,totSamples);
+	    if(heads[streamIdx].bufs[0].nSamples > 1 && heads[streamIdx].bufs[0].nElements > 1)
+            {
+                int dims[2];
+                dims[0] = heads[streamIdx].bufs[0].nSamples;
+                dims[1] = heads[streamIdx].bufs[0].nElements;
+                MDSplus::EventStream::send(shotNumber, heads[streamIdx].chanName, false,  currTimes, totTimes, 2, dims, totSamples);
+            }
+            else
+            {
+                MDSplus::EventStream::send(shotNumber, heads[streamIdx].chanName, false,  currTimes, totTimes, 1, &currSamples,totSamples);
+            }
         }
     }
 };

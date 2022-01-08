@@ -151,41 +151,41 @@ bool StreamOut::Synchronise() {
 	    TypeDescriptor type = sigTypes[n];
 	    if(type == Float32Bit)
 	    {
-               for(uint32 sample = 0; sample < numSamples[n]; sample++)
-	           streamBuffers[n][bufIdx * numSamples[n] + sample] = *reinterpret_cast<float32 *>(&dataSourceMemory[offsets[n]+sample*sizeof(float32)]);
+               for(uint32 sample = 0; sample < numSamples[n] * numElements[n]; sample++)
+	           streamBuffers[n][bufIdx * numSamples[n] * numElements[n] + sample] = *reinterpret_cast<float32 *>(&dataSourceMemory[offsets[n]+sample*sizeof(float32)]);
 	    }
 	    else if (type == Float64Bit)
 	    {
 
-               for(uint32 sample = 0; sample < numSamples[n]; sample++)
+               for(uint32 sample = 0; sample < numSamples[n] * numElements[n]; sample++)
 		{
-	           streamBuffers[n][bufIdx * numSamples[n] + sample] = (reinterpret_cast<float64 *>(&dataSourceMemory[offsets[n]]))[sample];
+	           streamBuffers[n][bufIdx * numSamples[n] * numElements[n] + sample] = (reinterpret_cast<float64 *>(&dataSourceMemory[offsets[n]]))[sample];
 		}
 
 	    }
 	    else if (type == SignedInteger16Bit)
 	    {
 
-               for(uint32 sample = 0; sample < numSamples[n]; sample++)
-	           streamBuffers[n][bufIdx * numSamples[n] + sample] = (reinterpret_cast<int16 *>(&dataSourceMemory[offsets[n]]))[sample];
+               for(uint32 sample = 0; sample < numSamples[n] * numElements[n]; sample++)
+	           streamBuffers[n][bufIdx * numSamples[n]  * numElements[n]+ sample] = (reinterpret_cast<int16 *>(&dataSourceMemory[offsets[n]]))[sample];
 	    }
 	    else if (type == SignedInteger32Bit)
 	    {
 
-               for(uint32 sample = 0; sample < numSamples[n]; sample++)
-	           streamBuffers[n][bufIdx * numSamples[n] + sample] = (reinterpret_cast<int32 *>(&dataSourceMemory[offsets[n]]))[sample];
+               for(uint32 sample = 0; sample < numSamples[n] * numElements[n]; sample++)
+	           streamBuffers[n][bufIdx * numSamples[n]  * numElements[n] + sample] = (reinterpret_cast<int32 *>(&dataSourceMemory[offsets[n]]))[sample];
 	    }
 	    else if (type == UnsignedInteger16Bit)
 	    {
 
-               for(uint32 sample = 0; sample < numSamples[n]; sample++)
-	           streamBuffers[n][bufIdx * numSamples[n] + sample] = (reinterpret_cast<uint16 *>(&dataSourceMemory[offsets[n]]))[sample];
+               for(uint32 sample = 0; sample < numSamples[n] * numElements[n]; sample++)
+	           streamBuffers[n][bufIdx * numSamples[n] * numElements[n] + sample] = (reinterpret_cast<uint16 *>(&dataSourceMemory[offsets[n]]))[sample];
 	    }
 	    else if (type == UnsignedInteger32Bit)
 	    {
 
-               for(uint32 sample = 0; sample < numSamples[n]; sample++)
-	           streamBuffers[n][bufIdx * numSamples[n] + sample] = (reinterpret_cast<uint32 *>(&dataSourceMemory[offsets[n]]))[sample];
+               for(uint32 sample = 0; sample < numSamples[n] * numElements[n]; sample++)
+	           streamBuffers[n][bufIdx * numSamples[n] * numElements[n] + sample] = (reinterpret_cast<uint32 *>(&dataSourceMemory[offsets[n]]))[sample];
 	    }
         }
         bufIdx = (bufIdx + 1)%bufSamples;
@@ -202,7 +202,7 @@ bool StreamOut::Synchronise() {
 //			     times[0], streamBuffers[n][0]);
 		    //  if (ok) MDSplus::EventStream::send(pulseNumber, channelNames[n].Buffer(), bufSamples*numSamples[n], times, streamBuffers[n]);
 
-		    if(ok) streamManager.reportChannel(n,  bufSamples*numSamples[n], bufSamples * numSamples[timeIdx], times, streamBuffers[n]);
+		    if(ok) streamManager.reportChannel(n,  bufSamples*numSamples[n], numElements[n], bufSamples * numSamples[timeIdx], times, streamBuffers[n]);
 		      
 		      
 		}
@@ -281,6 +281,7 @@ bool StreamOut::PrepareNextState(const char8* const currentStateName, const char
 }
 
 bool StreamOut::Initialise(StructuredDataI& data) {
+  printf("PARTE INITIALIZE\n");
     bool ok = DataSourceI::Initialise(data);
     if (ok) {
         ok = data.Read("NumberOfBuffers", numberOfBuffers);
@@ -391,11 +392,13 @@ bool StreamOut::Initialise(StructuredDataI& data) {
       data.MoveToAncestor(1u);
     }
     data.MoveToAncestor(1u);
+  printf("FINISCE INITIALIZE\n");
 
     return ok;
 }
 
 bool StreamOut::SetConfiguredDatabase(StructuredDataI& data) {
+  printf("PARTE SET CONFIGURED\n");
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     //Check signal properties and compute memory
     
@@ -433,9 +436,8 @@ bool StreamOut::SetConfiguredDatabase(StructuredDataI& data) {
                          "nOfInputSignals %d must be equal than number %d of signals per function (since only one function can be connected to this data source)",
                          nOfInputSignals, nOfSignals);
         }
-	if(!timeStreaming)
-	    numElements = reinterpret_cast<uint32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(int32)));
-	else
+        numElements = reinterpret_cast<uint32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(int32)));
+	if(timeStreaming)
 	    numSamples = reinterpret_cast<uint32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(int32)));
 
     }
@@ -495,6 +497,7 @@ bool StreamOut::SetConfiguredDatabase(StructuredDataI& data) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read number of samples for signal %d ", i);
 		return ok;
             }
+/*
             if(numSamples[i] == 1)
 	    {
 	          numSamples[i] = numberOfElements;
@@ -507,7 +510,10 @@ bool StreamOut::SetConfiguredDatabase(StructuredDataI& data) {
 		return ok;
               }
 	    }
- 	}	    
+*/ 
+           numElements[i] = numberOfElements;
+          
+        }	    
 	else //Oscilloscope mode
 	{
 	    numElements[i] = numberOfElements;
@@ -518,7 +524,7 @@ bool StreamOut::SetConfiguredDatabase(StructuredDataI& data) {
     {
       streamBuffers = reinterpret_cast<float32 **>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(nOfSignals * sizeof(float32 *)));
       for(uint32 i = 0; i < nOfSignals; i++)
-	streamBuffers[i] = reinterpret_cast<float32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(bufSamples * numSamples[i] * sizeof(float32)));
+	streamBuffers[i] = reinterpret_cast<float32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(bufSamples * numSamples[i] * numElements[i] * sizeof(float32)));
     }
  
     //lint -e{661} [MISRA C++ 5-0-16] Possible access out-of-bounds. nOfSignals is always 1 unit larger than numberOfNodeNames.
@@ -537,7 +543,7 @@ bool StreamOut::SetConfiguredDatabase(StructuredDataI& data) {
 		      if (!ok) {
                         REPORT_ERROR(ErrorManagement::ParametersError, "Error while GetSignalByteSize() for signal %u", i);
 		      }
-		      totalSignalMemory += nBytes * numSamples[i];
+		      totalSignalMemory += nBytes * numSamples[i] * numElements[i];
 		    }
                 }
             }
@@ -555,6 +561,7 @@ bool StreamOut::SetConfiguredDatabase(StructuredDataI& data) {
     }
     bufIdx = 0;
 
+  printf("FINISCE CONFIGURED\n");
 
     return ok;
 }
