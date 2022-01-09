@@ -17,6 +17,7 @@ LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/GAMs/M
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/GAMs/SpiderCalGAM
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/GAMs/PyGAM
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/GAMs/ResamplerGAM
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/GAMs/PickSampleGAM
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/anaconda3/lib/
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/DataSources/SWTrig
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/DataSources/mcc118
