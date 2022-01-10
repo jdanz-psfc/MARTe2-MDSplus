@@ -204,7 +204,7 @@ bool PickSampleGAM::Setup() {
 
 bool PickSampleGAM::Execute() {
 	
-    REPORT_ERROR(ErrorManagement::Debug, "EXECUTE");
+  //  REPORT_ERROR(ErrorManagement::Debug, "EXECUTE");
     
     for (uint32 sigIdx = 0; sigIdx < numSignals; sigIdx++) {
         memcpy(outputSignals[sigIdx], inputSignals[sigIdx], signalByteSize[sigIdx]); //Copy first sample
