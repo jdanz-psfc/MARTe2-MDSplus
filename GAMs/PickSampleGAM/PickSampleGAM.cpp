@@ -151,10 +151,15 @@ bool PickSampleGAM::Setup() {
         }
 
         TypeDescriptor outType = GetSignalType(OutputSignals, sigIdx);
-        ok = (outType == signalType);
+        ok = (outType == signalType)
+            ||(outType == UnsignedInteger32Bit && signalType == SignedInteger32Bit)
+            ||(outType == SignedInteger32Bit && signalType == UnsignedInteger32Bit);
         if (!ok) {
+            StreamString signalName;
+            GetSignalName(InputSignals, sigIdx, signalName);
             REPORT_ERROR(ErrorManagement::Exception,
-                                              "Output type for signal %i shall be the same of the corresponding input.", sigIdx);
+                                              "Output type %s for signal %s shall be the same of the corresponding input %s.", 
+                         TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType), signalName.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(outType));
             return ok;
         }
 
