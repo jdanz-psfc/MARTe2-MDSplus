@@ -45,12 +45,20 @@ extern "C"  {
 Resampler GAM will carry out resampling for an arbitrary number of inputs,
 where every input is an array of arbitrary length. 
 Supported types are float32, float64, int8, int16, int32, int64.
-The device expects an equal number of outputs and every output will be of
-dimension of the input divided by the resampling factor. The output types shall be the same of the corresponding inputs. 
-An optional low pass filter can be enabled, filtering at half the resampled frequency.
+The device expects an equal number of outputs of the same type and of the same dimension. 
+The resampling factor is derived from the ratio between the number of samples of the input signals and that of the corresponding output
+signals, and must be the same for all Input/Output pairs. 
+Field ResampleMode defines how resampling is performed and can have the following values:
+
+1: Just pick one sample every resamplingFactor input samples
+2: LowPass Filter of the input samples before picking. When Low Pass Filtering, parameter SamplingPeriod must be defined 
+3: Average resamplingFactor input samples per single output sample
 
 ****************************************************************/
 namespace MARTe {
+#define JUST_PICK 1
+#define PICK_FILTERED 2
+#define PICK_AVERAGE 3
 class ResamplerGAM : public GAM {
 public:
     CLASS_REGISTER_DECLARATION()
@@ -70,15 +78,16 @@ public:
     float64 samplingPeriod;
     TypeDescriptor* signalTypes;
     uint32* signalNumOfElements;
+    uint32* signalNumOfSamples;
 
     uint8 **inputSignals;
     uint8 **outputSignals;
 
-    bool filterEnabled;
+    uint8 resampleMode;
     float64 **inBuffers;
     float64 **outBuffers;
-    Filter **lowPassFilters; 
-    RunTimeFilter *runTimeFilters; 
+    Filter *lowPassFilter; 
+    RunTimeFilter **runTimeFilters; 
 
     };
 }

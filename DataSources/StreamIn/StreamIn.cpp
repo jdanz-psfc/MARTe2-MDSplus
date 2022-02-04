@@ -462,7 +462,7 @@ bool StreamIn::SetConfiguredDatabase(StructuredDataI& data) {
 						     &mutexSem, numberOfBuffers, false, NULL, &started, &periodGuess);
 	}
         REPORT_ERROR(ErrorManagement::Debug, "REGISTER LISTENER %s", channelNames[sigIdx].Buffer());
-        evStreams[sigIdx] = new MDSplus::EventStream(channelNames[sigIdx].Buffer());
+        evStreams[sigIdx] = new MDSplus::EventStream(channelNames[sigIdx].Buffer(), cpuMask);
 	evStreams[sigIdx]->registerListener(streamListeners[sigIdx]);
 	bufIdxs[sigIdx] = (numberOfBuffers - 1) * bufElements[sigIdx];
 	lastBufIdxs[sigIdx] = 0;
