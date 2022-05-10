@@ -124,11 +124,12 @@ bool FFTGAM::Setup() {
 
 bool FFTGAM::Execute() {
 
-static int xx;
-printf("FFT %d\n", xx++);
 
     for(uint32 i = 0; i < numberOfElements; i++)
     {
+in[i] = ((float64 *)inSignalMemory)[i];
+continue;
+
 	if (inputType == Float32Bit)
 	{
 		in[i] = ((float32 *)inSignalMemory)[i];

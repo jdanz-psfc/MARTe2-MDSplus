@@ -67,6 +67,8 @@ static void PyPrint(PyObject *obj) {
 	Py_XDECREF(str);
 }
 
+
+
 void sig_handler(int signo)
 {
 	if (signo == SIGINT) {
@@ -872,6 +874,8 @@ bool PyGAM::Execute() {
 	***************************************************************************/
 
  	RefreshData(OutputSignals);
+		
+	Py_XDECREF(pOutputs);
 	
 	/***********************************************************************//**
 	* 
@@ -1007,13 +1011,15 @@ bool PyGAM::RefreshData(const SignalDirection direction) {
 	
 	bool ok = true;
 	
-	uint32    numberOfArgs;
+	uint32    numberOfArgs = 0;
 	
-	PyObject* argTuple;
+	PyObject* argTuple = NULL;
 	
 	PyArgumentStruct* pyStruct;
 	
 	TypeDescriptor argType;
+  
+        uint32 enumType;
 	
 	switch (direction) {
 		
@@ -1046,49 +1052,49 @@ bool PyGAM::RefreshData(const SignalDirection direction) {
 		PyObject* temp = PyTuple_GetItem(argTuple, argIdx);
 		
 		//argType = GetSignalType(direction, argIdx);
-		argType = pyStruct[argIdx].GAMType;
+		enumType = pyStruct[argIdx].enumType;
 		
 		for (uint32 elemIdx = 0; elemIdx < pyStruct[argIdx].dimensions[0]*pyStruct[argIdx].dimensions[1]; elemIdx++) {
-			
+
 			//Now assign
 			
-			if (argType==UnsignedInteger8Bit) {
+			if (enumType==NPY_UINT8) {
 				
 				PyMemCopy<uint8>(direction, argIdx, elemIdx, temp);
 				
-			} else if (argType==UnsignedInteger16Bit) {
+			} else if (enumType==NPY_UINT16) {
 				
 				PyMemCopy<uint16>(direction, argIdx, elemIdx, temp);
 				
-			} else if (argType==UnsignedInteger32Bit) {
+			} else if (enumType==NPY_UINT32) {
 				
 				PyMemCopy<uint32>(direction, argIdx, elemIdx, temp);
 				
-			} else if (argType==UnsignedInteger64Bit) {
+			} else if (enumType==NPY_UINT64) {
 				
 				PyMemCopy<uint64>(direction, argIdx, elemIdx, temp);
 				
-			} else if (argType==SignedInteger8Bit) {
+			} else if (enumType==NPY_INT8) {
 				
 				PyMemCopy<int8>(direction, argIdx, elemIdx, temp);
 				
-			} else if (argType==SignedInteger16Bit) {
+			} else if (enumType==NPY_INT16) {
 				
 				PyMemCopy<int16>(direction, argIdx, elemIdx, temp);
 				
-			} else if (argType==SignedInteger32Bit) {
+			} else if (enumType==NPY_INT32) {
 				
 				PyMemCopy<int32>(direction, argIdx, elemIdx, temp);
 				
-			} else if (argType==SignedInteger64Bit) {
+			} else if (enumType==NPY_INT64) {
 				
 				PyMemCopy<int64>(direction, argIdx, elemIdx, temp);
 				
-			} else if (argType==Float32Bit) {
+			} else if (enumType==NPY_FLOAT32) {
 				
 				PyMemCopy<float32>(direction, argIdx, elemIdx, temp);
 				
-			} else if (argType==Float64Bit) {
+			} else if (enumType==NPY_FLOAT64) {
 				
 				PyMemCopy<float64>(direction, argIdx, elemIdx, temp);
 				
@@ -1097,11 +1103,11 @@ bool PyGAM::RefreshData(const SignalDirection direction) {
 				REPORT_ERROR(ErrorManagement::Exception,
 							 "Error while refreshing data between model and GAM.");
 				
-			}
+			} 
 			
-		}
+		} 
 		
-	}
+	} 
 	
 	return ok;
 	
@@ -1109,7 +1115,7 @@ bool PyGAM::RefreshData(const SignalDirection direction) {
 
 template <typename T>
 void PyGAM::PyMemCopy(const SignalDirection direction, uint32 argIdx, uint32 elemIdx, PyObject* temp) {
-	
+
 	switch (direction) {
 		
 		case InputSignals:
