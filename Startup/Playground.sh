@@ -19,6 +19,7 @@ LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/GAMs/S
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/GAMs/PyGAM
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/GAMs/ResamplerGAM
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/GAMs/PickSampleGAM
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/GAMs/DelayGAM
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/anaconda3/lib/
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/DataSources/WRTDTimer
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTE_DIR/../Build/x86-linux/Components/DataSources/SWTrig
@@ -65,6 +66,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH
 #cgdb --args ../Build/linux/Startup/Playground.ex $1 $2 $3 $4
 #strace -o/tmp/strace.err ../Build/linux/Startup/Playground.ex $1 $2  $3 $4
 $MARTe2_DIR/Docs/User/source/_static/examples/MARTeApp.sh -l RealTimeLoader $1 $2  $3 $4
+#valgrind $MARTe2_DIR/Docs/User/source/_static/examples/MARTeApp.sh -l RealTimeLoader $1 $2  $3 $4
 
 
 #MARTE_DIR/../Build/x86-linux/Startup/Playground.ex $1 $2 $3 $4 
