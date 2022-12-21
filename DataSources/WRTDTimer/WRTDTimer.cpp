@@ -321,6 +321,7 @@ ErrorManagement::ErrorType WRTDTimer::Execute(ExecutionInfo &info) {
     while(!stopped)
     {
         if(messageReceived && (currStartTime + (currCounter+2) * period > startTime + delay)) //Keep initial clock active until close to real start
+        if(messageReceived && (currStartTime + (currCounter+2) * period > startTime + delay)) //Keep initial clock active until close to real start
             break;
         currCounter++;
         wrtdWaitUntil(clockId, currStartTime + currCounter * period, 0);  
@@ -524,7 +525,8 @@ float64 WRTDTimer::wrtdGetTime(const char *group, unsigned int port, const char 
     double delay_secs = floor(delay);
  //   answer = msgbuf.ts_sec - leapseconds + (int)delay_secs + msgbuf.ts_ns*1E-9 + (delay - delay_secs)*1E9; 
  //Mi pare un fia' sballata
-    answer = msgbuf.ts_sec - leapseconds + (int)delay_secs + msgbuf.ts_ns*1E-9 + delay;
+    //answer = msgbuf.ts_sec - leapseconds + (int)delay_secs + msgbuf.ts_ns*1E-9 + delay; GAB NATALE
+    answer = msgbuf.ts_sec - leapseconds + msgbuf.ts_ns*1E-9 + delay;
     break;
   }
   if (verbose)
@@ -599,7 +601,8 @@ void WRTDTimer::handleTimeMessage()
 {
     float64 answer;
     uint32 clockId = wrtdGetClockId(clockName.Buffer());
-    answer = wrtdGetTime(multicastGroup.Buffer(),  udpPort, eventName.Buffer(), clockId, delay, leapSeconds, 1);
+   // answer = wrtdGetTime(multicastGroup.Buffer(),  udpPort, eventName.Buffer(), clockId, delay, leapSeconds, 1);
+    answer = wrtdGetTime(multicastGroup.Buffer(),  udpPort, eventName.Buffer(), clockId, 0, leapSeconds, 1);
     startTime = answer;
     messageReceived = true;
 }
