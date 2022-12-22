@@ -31,7 +31,8 @@
 namespace MARTe {
 
 PickSampleGAM::PickSampleGAM() : GAM(){
-    numSignals = 0;
+    numInSignals = 0;
+    numOutSignals = 0;
     signalSamples = NULL_PTR(uint32 *);
     signalByteSize = NULL_PTR(uint32 *);
     inputSignals = NULL_PTR(uint8 **);
@@ -81,7 +82,7 @@ bool PickSampleGAM::Initialise(StructuredDataI & data) {
             return ok;
     }
     
-    numSignals = data.GetNumberOfChildren();
+    numInSignals = data.GetNumberOfChildren();
     
     // Back to the GAM node
     data.MoveToAncestor(1);
@@ -93,11 +94,12 @@ bool PickSampleGAM::Initialise(StructuredDataI & data) {
             return ok;
     }
     
-    uint32 numOutputSignals = data.GetNumberOfChildren();
-    ok = (numOutputSignals == numSignals);
+    numOutSignals = data.GetNumberOfChildren();
+    //Consider also the case of a single output that is going to contain the inputs (first sample) in a structure
+    ok = (numOutSignals == 1 || numOutSignals == numInSignals);
     if(!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError,
-                                      "The number of input signals shall be equal to the number of output signals");
+                                      "The number of input signals shall be aither 1 or equal to the number of output signals");
             return ok;
     }
     // Back to the GAM node
@@ -114,13 +116,14 @@ bool PickSampleGAM::Setup() {
     /**
       * Firstly, types and dimensions of signals are retrieved and checked.
       */
-    signalSamples = reinterpret_cast<uint32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(numSignals * sizeof(uint32)));
-    signalByteSize = reinterpret_cast<uint32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(numSignals * sizeof(uint32)));
+    signalSamples = reinterpret_cast<uint32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(numInSignals * sizeof(uint32)));
+    signalByteSize = reinterpret_cast<uint32 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(numInSignals * sizeof(uint32)));
     TypeDescriptor signalType;
     uint32 signalElement;
+    totSignalByteSize = 0;
 
     // Inputs
-    for (uint32 sigIdx = 0; sigIdx < numSignals; sigIdx++) {
+    for (uint32 sigIdx = 0; sigIdx < numInSignals; sigIdx++) {
             
         signalType = GetSignalType(InputSignals, sigIdx);
             
@@ -132,7 +135,6 @@ bool PickSampleGAM::Setup() {
             return ok;
                     
         }
- 
         ok = GetSignalByteSize(InputSignals,sigIdx, signalByteSize[sigIdx]);
         if (!ok) {
                     
@@ -141,6 +143,7 @@ bool PickSampleGAM::Setup() {
             return ok;
                     
         }
+        totSignalByteSize += signalByteSize[sigIdx];
         ok = GetSignalNumberOfElements(InputSignals,sigIdx, signalElement);
         if (!ok) {
                     
@@ -149,58 +152,94 @@ bool PickSampleGAM::Setup() {
             return ok;
                     
         }
-
-        TypeDescriptor outType = GetSignalType(OutputSignals, sigIdx);
-        ok = (outType == signalType)
-            ||(outType == UnsignedInteger32Bit && signalType == SignedInteger32Bit)
-            ||(outType == SignedInteger32Bit && signalType == UnsignedInteger32Bit);
-        if (!ok) {
-            StreamString signalName;
-            GetSignalName(InputSignals, sigIdx, signalName);
-            REPORT_ERROR(ErrorManagement::Exception,
+        if(numInSignals == numOutSignals) //Check type only if not compacting all inputs in a single output
+        {
+            TypeDescriptor outType = GetSignalType(OutputSignals, sigIdx);
+            ok = (outType == signalType)
+                ||(outType == UnsignedInteger32Bit && signalType == SignedInteger32Bit)
+                ||(outType == SignedInteger32Bit && signalType == UnsignedInteger32Bit);
+            if (!ok) {
+                StreamString signalName;
+                GetSignalName(InputSignals, sigIdx, signalName);
+                REPORT_ERROR(ErrorManagement::Exception,
                                               "Output type %s for signal %s shall be the same of the corresponding input %s.", 
                          TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType), signalName.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(outType));
-            return ok;
-        }
+                return ok;
+            }
 
-//If output is declared as scalar (numberOfDimensions == 0) then Samples will be the input array size / resFactor. Otherwise, the array dimension shall be the input array size / resFactor.
-        uint32 numOutElements;
-        ok = GetSignalNumberOfElements(OutputSignals, sigIdx, numOutElements);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::Exception,
-                                              "Error in GetSignalNumberOfElements: output signal %i does not exist.", sigIdx);
-            return ok;	
-        }
-        ok = (numOutElements == signalElement);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::Exception,
-                                              "Input/output number of elements different for  signal %i.", sigIdx);
-            return ok;  
-        }
-        uint32 numOutSamples;
-        ok = GetSignalNumberOfSamples(OutputSignals, sigIdx, numOutSamples);
-        if (!ok) {
+            uint32 numOutElements;
+            ok = GetSignalNumberOfElements(OutputSignals, sigIdx, numOutElements);
+            if (!ok) {
                 REPORT_ERROR(ErrorManagement::Exception,
-                                          "Error in GetSignalNumberOfSamples: output signal %i does not exist.", sigIdx);
+                                                "Error in GetSignalNumberOfElements: output signal %i does not exist.", sigIdx);
                 return ok;	
+            }
+            ok = (numOutElements == signalElement);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::Exception,
+                                                "Input/output number of elements different for  signal %i.", sigIdx);
+                return ok;  
+            }
+            uint32 numOutSamples;
+            ok = GetSignalNumberOfSamples(OutputSignals, sigIdx, numOutSamples);
+            if (!ok) {
+                    REPORT_ERROR(ErrorManagement::Exception,
+                                            "Error in GetSignalNumberOfSamples: output signal %i does not exist.", sigIdx);
+                    return ok;	
+            }
+            ok = (numOutSamples == 1);
+            if (!ok) {
+                    
+                    REPORT_ERROR(ErrorManagement::Exception,
+                                            "Output signal %i shall have one single sample.", sigIdx);
+            return ok;
+            }
+        }
+    }
+   //handle the separate case in which all inputs (first sample) is compacted into a single output
+    if(numInSignals != numOutSignals) //In this case there is a single out signal due to the checks performed at initialization
+    {
+        uint32 numOutSamples;
+        bool ok = GetSignalNumberOfSamples(OutputSignals, 0, numOutSamples);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::Exception,
+                    "Error in GetSignalNumberOfSamples: output signal 0 does not exist.");
+            return ok;	
         }
         ok = (numOutSamples == 1);
         if (!ok) {
-                
-                REPORT_ERROR(ErrorManagement::Exception,
-                                          "Output signal %i shall have one single sample.", sigIdx);
-        return ok;
+            REPORT_ERROR(ErrorManagement::Exception,
+                                            "Output signal 0 shall have one single sample.");
+            return ok;
         }
-    }
+        uint32 outBytes;
+        ok = GetSignalByteSize(OutputSignals, 0, outBytes);
+        if (!ok) {
+           REPORT_ERROR(ErrorManagement::Exception,
+                                              "Error in GetSignalNumberOfSamples: output signal 0 does not exist.");
+            return ok;
+        }
+ /*       if(totSignalByteSize != outBytes)
+        {           
+            REPORT_ERROR(ErrorManagement::Exception,
+                                              "The dimension in bytes (%d) of the single output shall be equal to the sum of that of the first sample of all inputs(%d)",
+                                              outBytes, totSignalByteSize);
+            return false;
+        } 
+ */   }
 
-    //Allocate inptus, outputs and compute offsets
-    inputSignals = reinterpret_cast<uint8 **>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(numSignals * sizeof(uint8 **)));
-    outputSignals = reinterpret_cast<uint8 **>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(numSignals * sizeof(uint8 **)));
+
+    //Allocate inputs, outputs and compute offsets
+    inputSignals = reinterpret_cast<uint8 **>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(numInSignals * sizeof(uint8 **)));
+    outputSignals = reinterpret_cast<uint8 **>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(numOutSignals * sizeof(uint8 **)));
 
 
-    for (uint32 sigIdx = 0; sigIdx < numSignals; sigIdx++) 
+    for (uint32 sigIdx = 0; sigIdx < numInSignals; sigIdx++) 
     {
         inputSignals[sigIdx] = reinterpret_cast<uint8 *>(GetInputSignalMemory(sigIdx));
+    }
+    for (uint32 sigIdx = 0; sigIdx < numOutSignals; sigIdx++) 
+    {
         outputSignals[sigIdx] = reinterpret_cast<uint8 *>(GetOutputSignalMemory(sigIdx));
     }
     
@@ -210,10 +249,21 @@ bool PickSampleGAM::Setup() {
 bool PickSampleGAM::Execute() {
 	
   //  REPORT_ERROR(ErrorManagement::Debug, "EXECUTE");
-    
-    for (uint32 sigIdx = 0; sigIdx < numSignals; sigIdx++) {
-        memcpy(outputSignals[sigIdx], inputSignals[sigIdx], signalByteSize[sigIdx]); //Copy first sample
+    if(numInSignals == numOutSignals)
+    {
+        for (uint32 sigIdx = 0; sigIdx < numInSignals; sigIdx++) {
+            memcpy(outputSignals[sigIdx], inputSignals[sigIdx], signalByteSize[sigIdx]); //Copy first sample
+        }
     }
+    else //Compacting inputs in a single output
+    {
+        uint32 byteOffset = 0;
+        for (uint32 sigIdx = 0; sigIdx < numInSignals; sigIdx++) {
+            memcpy(outputSignals[0]+byteOffset, inputSignals[sigIdx], signalByteSize[sigIdx]); //Copy first sample
+            byteOffset += signalByteSize[sigIdx];
+        }
+    }
+   
     return true;
 }
 

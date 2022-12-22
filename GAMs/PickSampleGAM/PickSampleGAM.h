@@ -61,7 +61,9 @@ public:
 
     virtual bool Initialise(StructuredDataI & data);
 
-    uint32 numSignals;
+    uint32 numInSignals;
+    uint32 numOutSignals;
+    uint32 totSignalByteSize;
     uint32* signalByteSize;
     uint32* signalSamples;
 
