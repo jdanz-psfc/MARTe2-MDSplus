@@ -58,8 +58,8 @@ namespace MARTe {
  * The DataSource accepts a variable number N of signal: Adc1 to AdcN. A check is performed to ensure that N is not greater than
  * the number of available AI channels. NumSamples will be the same for all AI and DI channels and can be greater than 1 only for BULK mode.
  * Only float64 type is supported
- * The data Source accepts a variable number M of (sets of 32) digital inputs: Di1 to DiM. A check is performed to ensure that M is not greater 
- * than NumDI. Both int32 and uint32 types are supported.
+ * The data Source accepts a variable number M of  digital inputs: Di1 to DiM. A check is performed to ensure that M is not greater 
+ * than NumDI*32. Both int8 and uint8 types are supported.
  *
  *
  * */
@@ -67,7 +67,7 @@ namespace MARTe {
 #define DTACQAI_REALTIME 2
 #define DTACQAI_AI 1
 #define DTACQAI_DI 2
-#define BUF_SAMPLE_FACTOR 40
+#define BUF_SAMPLE_FACTOR 500
 class DTACQAI: public DataSourceI, public EmbeddedServiceMethodBinderI {
 public:
     CLASS_REGISTER_DECLARATION()
@@ -215,7 +215,11 @@ private:
     TCPSocket *tcpSocket;
     EventSem synchSem;  
     char8 *packet;
-    /**
+    float64 triggerTime;
+    uint32 startTime;
+    char8 samplesConsumed;
+    uint32 freqDivision;
+     /**
      * The EmbeddedThread where the Execute method waits for the ADC data to be available.
      */
     SingleThreadService executor;
@@ -226,6 +230,7 @@ private:
 
     uint8 firstPacket;
     uint32 lastCounter;
+    uint32 spadSize;
     
   };
   

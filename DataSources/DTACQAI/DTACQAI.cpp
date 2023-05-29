@@ -185,6 +185,7 @@ bool DTACQAI::PrepareNextState(const char8* const currentStateName, const char8*
 bool DTACQAI::Synchronise() {
     ErrorManagement::ErrorType err(true);
     uint32 availableSamples;
+//    printf("SYNCHRONZE\n");
    // printf("OUT BUF IDX: %d  IN BUF IDX: %d", outBufIdx, inBufIdx);
     bool ok = (bufMux.FastLock() == ErrorManagement::NoError);
     if(!ok)
@@ -205,10 +206,12 @@ bool DTACQAI::Synchronise() {
         {
             REPORT_ERROR(ErrorManagement::FatalError, "Error resetting CSemathore");
             return false;
-        }
+        }        
         bufMux.FastUnLock();
+ //       printf("AVAILABLE SAMPLES: %d\n" ,availableSamples);
         err = synchSem.Wait(TTInfiniteWait);
-        if(!err.ErrorsCleared())
+ //       printf("FINE WAIT\n");
+       if(!err.ErrorsCleared())
         {
             REPORT_ERROR(ErrorManagement::FatalError, "Error waiting Condition");
             return false;
@@ -229,11 +232,14 @@ bool DTACQAI::Synchronise() {
     //At this point there are for sure enough available samples
     uint32 currOffset = 0;
     uint32 currBufIdx = outBufIdx;
+
+
+
     //Copy first counters and times
 // printf("WRITING %d SIGNALS %d SAMPLES  AVAILABLE SAMPLES : %d NUM SAMPLES: %d\n", numSignals, numSamples, availableSamples, numSamples);
     for(uint32 currSample = 0; currSample < numSamples; currSample++)
     {
-        *(uint32 *)(&chanBuf[currOffset]) = counters[currBufIdx];
+        *((uint32 *)(&chanBuf[currOffset])) = counters[currBufIdx];
         currOffset += sizeof(int32);
         currBufIdx++;
         if(currBufIdx >= numBufSamples)
@@ -244,7 +250,7 @@ bool DTACQAI::Synchronise() {
     currBufIdx = outBufIdx;
     for(uint32 currSample = 0; currSample < numSamples; currSample++)
     {
-        *(uint32 *)(&chanBuf[currOffset]) = times[currBufIdx];
+        *((uint32 *)(&chanBuf[currOffset])) = times[currBufIdx];
         currOffset += sizeof(int32);
         currBufIdx++;
         if(currBufIdx >= numBufSamples)
@@ -262,7 +268,6 @@ bool DTACQAI::Synchronise() {
             {
                 int16 currRaw = aiChans[currBufIdx * totAiChans  + signalIds[currSig]];
                 *((float64 *)(&chanBuf[currOffset])) = currRaw * calGains[signalIds[currSig]] + calOffsets[signalIds[currSig]];
-            // printf("%f(%d)\n",*((float64 *)&chanBuf[currOffset]), currRaw);
                 currOffset += sizeof(float64);
             }
             else{
@@ -289,8 +294,9 @@ bool DTACQAI::Synchronise() {
     else {
         availableSamples = numBufSamples - outBufIdx + inBufIdx;
     }
+    samplesConsumed = 1;
     bufMux.FastUnLock();
-    firstPacket = 1;
+ //   printf("FINITO SYNCH\n");
     return true;
 }
 
@@ -302,6 +308,12 @@ bool DTACQAI::Initialise(StructuredDataI& data) {
        ok = data.Read("Mode", mode);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The AI mode (1: Bulk, 2: Realtime) shall be specified");
+        }
+    }
+    if (ok) {
+       ok = data.Read("SpadSize", spadSize);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The SPAD size shall be specified");
         }
     }
     if (ok) {
@@ -413,6 +425,13 @@ bool DTACQAI::Initialise(StructuredDataI& data) {
             cpuMask = 0;
         }
     }
+    if(ok)
+    {
+         ok = data.Read("TriggerTime", triggerTime);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::Warning, "Trigger time not specified, assumed to be 0");
+        }
+    }
     if (ok) {
         ok = data.MoveRelative("Signals");
         if (!ok) {
@@ -444,16 +463,32 @@ bool DTACQAI::Initialise(StructuredDataI& data) {
             data.MoveRelative(data.GetChildName(currSig));
             ok = data.Read("ChannelId", signalIds[currSig]);
             if(!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "ChannelId shall be specified for signal %d", currSig);
+                REPORT_ERROR(ErrorManagement::ParametersError, "Channel Id shall be specified for signal %d", currSig);
             }
             data.MoveToAncestor(1u);
         }
         data.MoveToAncestor(1u);
     }
+    if(ok)
+    {
+        if (mode == DTACQAI_REALTIME)
+        {
+            ok = data.Read("FreqDivision", freqDivision);
+            if(!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "FreqDuvusion shall be defined for REALTIME mode");
+            }
+        }
+        else
+        {
+            freqDivision = 1;
+        }
+    }
+
     return ok;
 }
 
 bool DTACQAI::SetConfiguredDatabase(StructuredDataI& data) {
+    printf("SET CONFIGURED\n\n");
     uint32 numAiSignals, numDiSignals;
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     if(ok)
@@ -524,7 +559,7 @@ bool DTACQAI::SetConfiguredDatabase(StructuredDataI& data) {
                     chanOffsets[currSig] = currOffset;
                     currOffset += sizeof(float64)* numSamples;
                 }
-                else if(GetSignalType(currSig) == UnsignedInteger8Bit || GetSignalType(currSig) == SignedInteger8Bit )\
+                else if(GetSignalType(currSig) == UnsignedInteger8Bit || GetSignalType(currSig) == SignedInteger8Bit )
                 {
                     numDiSignals++;
                     signalTypes[currSig] = DTACQAI_DI;
@@ -547,7 +582,7 @@ bool DTACQAI::SetConfiguredDatabase(StructuredDataI& data) {
     }
     if(ok)
     {
-        chanBuf = new uint8[numSamples*(numAiSignals * sizeof(float64) + numDiSignals * sizeof(uint8))];
+        chanBuf = new uint8[numSamples*(2*sizeof(int32) + numAiSignals * sizeof(float64) + numDiSignals * sizeof(uint8))];
         aiChans = new int16[BUF_SAMPLE_FACTOR *numSamples * totAiChans];
         diChans = new uint32[BUF_SAMPLE_FACTOR *numSamples * numDis];
         counters = new uint32[BUF_SAMPLE_FACTOR *numSamples];
@@ -565,6 +600,7 @@ bool DTACQAI::SetConfiguredDatabase(StructuredDataI& data) {
             }
             if(ok)
             {
+                printf("CONNECT TO %s\n", (char *)ipAddress.Buffer());
                 if(!tcpSocket->Connect(ipAddress.Buffer(), port))
                 {
                     REPORT_ERROR(ErrorManagement::ParametersError, "Cannot Connect TCP socket to %s:%d", ipAddress.Buffer(), port);
@@ -595,7 +631,11 @@ bool DTACQAI::SetConfiguredDatabase(StructuredDataI& data) {
     }
     if(ok)
     {
-        packetLen = totAiChans * sizeof(int16) + numDis * sizeof(uint32) + 64;
+//        packetLen = numSamples * (totAiChans * sizeof(int16) + numDis * sizeof(uint32) + 64);
+//        packetLen = numSamples * (totAiChans * sizeof(int16) + numDis * sizeof(uint32) + 16);
+          packetLen = numSamples * (totAiChans * sizeof(int16) + numDis * sizeof(uint32) + spadSize);
+//        packetLen = numSamples * (totAiChans * sizeof(int16) + numDis * sizeof(uint32) + 32);
+
         packet = new char8[packetLen];
     }
     if(ok)
@@ -614,6 +654,8 @@ bool DTACQAI::SetConfiguredDatabase(StructuredDataI& data) {
             }
         }
     }
+    firstPacket = 1;
+    samplesConsumed = 1;
     return ok;
 }
 
@@ -626,52 +668,74 @@ ErrorManagement::ErrorType DTACQAI::Execute(ExecutionInfo& info) {
     else if (info.GetStage() == ExecutionInfo::StartupStage) {
     }
     else {
-      //  printf("READING %d BYTES....\n", packetLen);
+     //   printf("READING %d BYTES....\n", packetLen);
         uint32 leftBytes = packetLen;
         while(leftBytes > 0)
         {
             uint32 currSize = leftBytes;
             if(mode == DTACQAI_BULK)
             {
-                tcpSocket->Read(packet, currSize);
+              //  printf("LEGGO %d\n", currSize);
+                tcpSocket->Read(&packet[packetLen - leftBytes], currSize);
+              //  printf("LETTi %d\n", currSize);
             }
             else
             {
-                udpSocket->Read(packet, currSize);
+                udpSocket->Read(&packet[packetLen - leftBytes], currSize);
             }
+            
             leftBytes -= currSize;
         }
-       // printf("READ\n");
+//        printf("READ %d\n", inBufIdx);
         bufMux.FastLock();
-        counters[inBufIdx] = *((int32 *)&packet[totAiChans * sizeof(int16)+numDis*sizeof(uint32)]);
-        times[inBufIdx] = *((int32 *)&packet[totAiChans * sizeof(int16)+numDis*sizeof(uint32)+sizeof(uint32)]);
-        if(firstPacket)
+ //       uint32 singlePacketLen = totAiChans * sizeof(int16) + numDis * sizeof(uint32) + 64;
+//        uint32 singlePacketLen = totAiChans * sizeof(int16) + numDis * sizeof(uint32) + 16;
+        uint32 singlePacketLen = totAiChans * sizeof(int16) + numDis * sizeof(uint32) + spadSize;
+//        uint32 singlePacketLen = totAiChans * sizeof(int16) + numDis * sizeof(uint32) + 32;
+        for(uint32 currSample = 0; currSample < numSamples; currSample++)
         {
-            firstPacket = 0;
-            lastCounter = counters[inBufIdx];
-        }
-        else
-        {
-            if(lastCounter + 1 != (counters[inBufIdx]))
+            counters[inBufIdx] = *((uint32 *)(&packet[currSample * singlePacketLen + totAiChans * sizeof(int16)+numDis*sizeof(uint32)]));
+//            printf("\n%d\n", counters[inBufIdx]);
+//            uint32 TAITime = *((uint32 *)(&packet[currSample * singlePacketLen + totAiChans * sizeof(int16)+numDis*sizeof(uint32)+2*sizeof(uint32)]));
+//            times[inBufIdx] = (TAITime >>28)*1E6 + (TAITime&0x0FFFFFFF)/40;     
+            times[inBufIdx] =  *((uint32 *)(&packet[currSample * singlePacketLen + totAiChans * sizeof(int16)+numDis*sizeof(uint32)+sizeof(uint32)]));   
+            if(firstPacket)
             {
-                printf("URCA, PACCHETTO PERSO %d  %d\n", lastCounter, counters[inBufIdx]);
+                firstPacket = 0;
+                lastCounter = counters[inBufIdx];
+                startTime = times[inBufIdx];
+                times[inBufIdx] = 0;
             }
-            lastCounter = counters[inBufIdx];
-        }
-        for(uint32 i = 0; i < totAiChans; i++)
-        {
-            aiChans[inBufIdx*totAiChans  + i] = *((int16 *)&packet[i * sizeof(int16)]);
+            else
+            {
+                //if(lastCounter + 1 != (counters[inBufIdx]))
+                if(lastCounter + freqDivision != (counters[inBufIdx]))
+                {
+                    printf("URCA, PACCHETTO PERSO %d  %d\n", lastCounter, counters[inBufIdx]);
+                }
+                lastCounter = counters[inBufIdx];
+                times[inBufIdx] -= startTime;
+            }
+            for(uint32 i = 0; i < totAiChans; i++)
+            {
+                aiChans[inBufIdx*totAiChans  + i] = *((int16 *)(&packet[currSample * singlePacketLen +  i * sizeof(int16)]));
      //       printf("%d ", aiChans[inBufIdx + i]);
-        }
-       // printf("RAW: %d\n", aiChans[inBufIdx*totAiChans]);
-        for(uint32 i = 0; i < numDis; i++)
-        {
-            diChans[inBufIdx*numDis + i] = *((uint32 *)&packet[totAiChans * sizeof(int16)+i*sizeof(uint32)]);
-        }
-        inBufIdx++;
-        if(inBufIdx >= numBufSamples)
-        {
-            inBufIdx = 0;
+            }
+        //printf("%d  %d  %d\n", counters[inBufIdx], times[inBufIdx], aiChans[inBufIdx*totAiChans]);
+          // printf("RAW: %d\n", aiChans[inBufIdx*totAiChans]);
+            for(uint32 i = 0; i < numDis; i++)
+            {
+             diChans[inBufIdx*numDis + i] = *((uint32 *)(&packet[currSample * singlePacketLen + totAiChans * sizeof(int16)+i*sizeof(uint32)]));
+            }
+            inBufIdx++;
+            if(inBufIdx >= numBufSamples)
+            {
+                inBufIdx = 0;
+            }
+            if(inBufIdx == outBufIdx)
+            {
+                printf("OHI OHI: BUFFER OVERFLOW!!!!!!!!!!!\n");
+            }
         }
         uint32 availableSamples;
         if (inBufIdx >= outBufIdx) {
@@ -680,13 +744,10 @@ ErrorManagement::ErrorType DTACQAI::Execute(ExecutionInfo& info) {
         else {
             availableSamples = numBufSamples - outBufIdx + inBufIdx;
         }
-    //    printf("AVAILABLE SAMPLES %d NUM SAMPLES: %d\n", availableSamples, numSamples);
-        if(availableSamples > numSamples)
+        if(availableSamples >= numSamples && samplesConsumed)
         {
-            printf("OHIBO', NON CI SI STA DIETRO %d\n", availableSamples);
-        }
-        if(availableSamples >= numSamples)
-        {
+         //   printf("available samples: %d\n", availableSamples);
+            samplesConsumed = 0;
             err = !synchSem.Post();
         }
         bufMux.FastUnLock();
