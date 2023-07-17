@@ -74,5 +74,5 @@ jcp: jccppex
 	g++ $(CXXFLAGS) -c -o $@ $<
 
 jccppex: jcppmain.o
-	g++ $(LDFLAGS) -o jcppex $< $(LDLIBS)
+	g++ $(LDFLAGS) -o jcppex $< $(LDLIBS) $(LIBRARIES)
 
