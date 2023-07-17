@@ -57,6 +57,7 @@ PYINTERPRETER =
 ###############################################################
 
 
+include Makefile-jcpp
 
 # Linker flags requested by python3.7-config
 LIBRARIES += -L$(PYINTERPRETER) -lpython3.9 -lutil -Xlinker -export-dynamic
@@ -66,4 +67,12 @@ all: $(OBJS) $(SUBPROJ) \
 	    echo  $(OBJS)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
+
+jcp: jccppex
+
+%.o: %.cc
+	g++ $(CXXFLAGS) -c -o $@ $<
+
+jccppex: jcppmain.o
+	g++ $(LDFLAGS) -o jcppex $< $(LDLIBS)
 
