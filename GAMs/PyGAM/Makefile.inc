@@ -71,7 +71,7 @@ include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
 jcp: jccppex
 
 %.o: %.cc
-	g++ $(CXXFLAGS) -c -o $@ $<
+	g++ $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 jccppex: jcppmain.o
 	g++ $(LDFLAGS) -o jcppex $< $(LDLIBS) $(LIBRARIES)
