@@ -49,17 +49,17 @@ CPPFLAGS += -Wno-unused-function
 ####THE FOLLOWING DEFINITIONS MUST BE CHANGED IN ORDER TO ADAPT 
 ####TO THE INSTALLED PYTHON (>=3.7)
 # Python header file folder
-INCLUDES += -I/usr/include/python3.6m/
-INCLUDES += -I/usr/lib/python3/dist-packages/numpy/core/include/
+INCLUDES += -I/usr/include/python3.9/
+INCLUDES += -I/usr/local/lib64/python3.9/site-packages/numpy/core/include
 # Python interpreter folder
-PYINTERPRETER = /usr/lib/arm-linux-gnueabihf/
+PYINTERPRETER =
 
 ###############################################################
 
 
 
 # Linker flags requested by python3.7-config
-LIBRARIES += -L$(PYINTERPRETER) -lpython3.6m -lutil -Xlinker -export-dynamic
+LIBRARIES += -L$(PYINTERPRETER) -lpython3.9 -lutil -Xlinker -export-dynamic
 
 all: $(OBJS) $(SUBPROJ) \
 	$(BUILD_DIR)/PyGAM$(DLLEXT)
