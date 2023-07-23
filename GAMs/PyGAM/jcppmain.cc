@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+/*
 // An example for reading a HloModule from a HloProto file and execute the
 // module on PJRT CPU client.
 //
@@ -35,11 +36,19 @@ limitations under the License.
 //   { 3.5, 3.5 }
 // }
 // )
+*/
 
 #include <memory>
 #include <string>
 #include <vector>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma GCC diagnostic ignored "-Wcomment"
+#pragma GCC diagnostic ignored "-Wreturn-type"
+#pragma GCC diagnostic ignored "-Wignored-qualifiers"
 #include "xla/literal.h"
 #include "xla/literal_util.h"
 #include "xla/pjrt/pjrt_client.h"
@@ -50,6 +59,7 @@ limitations under the License.
 #include "xla/tools/hlo_module_loader.h"
 #include "tsl/platform/init_main.h"
 #include "tsl/platform/logging.h"
+#pragma GCC diagnostic pop
 
 int main(int argc, char** argv) {
   tsl::port::InitMain("", &argc, &argv);
