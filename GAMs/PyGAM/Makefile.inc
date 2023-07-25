@@ -52,7 +52,7 @@ CPPFLAGS += -Wno-unused-function -Wno-error
 INCLUDES += -I/usr/include/python3.9/
 INCLUDES += -I/usr/local/lib64/python3.9/site-packages/numpy/core/include
 # Python interpreter folder
-PYINTERPRETER = .
+PYINTERPRETER = /usr/lib/python3.9/
 
 ###############################################################
 
