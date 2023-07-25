@@ -4,6 +4,23 @@ CPPFLAGS += -fPIC -std=c++17
 INCLUDES += -I/usr/local/lib64/python3.9/site-packages/jaxlib
 LIBRARIES += -L/usr/local/lib64/python3.9/site-packages/jaxlib -lstdc++
 
+INCLUDES += -I$(JAX_DIR)/external/xla
+INCLUDES += -I$(JAX_DIR)/external/xla/third_party/tsl
+INCLUDES += -I$(JAX_DIR)/external/com_google_absl
+INCLUDES += -I$(JAX_DIR)/external/com_google_protobuf/src/
+INCLUDES += -I$(JAX_DIR)/external/eigen_archive
+INCLUDES += -I$(JAX_DIR)/external/farmhash_archive/src
+INCLUDES += -I$(JAX_DIR)/external/llvm-raw/llvm/include
+INCLUDES += -I$(JAX_DIR)/external/llvm-raw/mlir/include
+INCLUDES += -I$(JAX_DIR)/external/llvm-project/llvm/include
+INCLUDES += -I$(JAX_DIR)/external/tf_runtime/include
+INCLUDES += -I$(JAX_DIR)/external/com_github_grpc_grpc/include
+INCLUDES += -I$(JAX_DIR)/execroot/__main__/bazel-out/k8-opt/bin/external/tsl
+INCLUDES += -I$(JAX_DIR)/execroot/__main__/bazel-out/k8-opt/bin/external/xla
+INCLUDES += -I$(JAX_DIR)/execroot/__main__/bazel-out/k8-opt/bin/external/llvm-project/llvm/include
+INCLUDES += -I$(JAX_DIR)/execroot/__main__/bazel-out/k8-opt/bin/external/llvm-project/mlir/include
+CPPFLAGS += -DLLVM_VERSION_STRING=\"17.0.0git\"
+
 LIBRARIES += -ldl
 LIBRARIES += -lm
 LIBRARIES += -lpthread
