@@ -43,7 +43,7 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 
-CPPFLAGS += -Wno-unused-function
+CPPFLAGS += -Wno-unused-function -Wno-error
 
 ##############################################################
 ####THE FOLLOWING DEFINITIONS MUST BE CHANGED IN ORDER TO ADAPT 
@@ -52,7 +52,7 @@ CPPFLAGS += -Wno-unused-function
 INCLUDES += -I/usr/include/python3.9/
 INCLUDES += -I/usr/local/lib64/python3.9/site-packages/numpy/core/include
 # Python interpreter folder
-PYINTERPRETER =
+PYINTERPRETER = .
 
 ###############################################################
 
@@ -67,12 +67,8 @@ all: $(OBJS) $(SUBPROJ) \
 	    echo  $(OBJS)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
+#COMPILER=clang++
+#CCOMPILER=clang
+#LINKER=clang++
 
-jcp: jccppex
-
-%.o: %.cc
-	g++ $(INCLUDES) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
-
-jccppex: jcppmain.o
-	g++ $(LDFLAGS) -o jcppex $< $(LDLIBS) $(LIBRARIES)
-
+CPPFLAGS += -fpermissive -Wno-all -Wno-extra

@@ -43,22 +43,24 @@ limitations under the License.
 #include <vector>
 
 #pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wall"
+#pragma GCC diagnostic ignored "-Werror"
 #pragma GCC diagnostic ignored "-Wunused-function"
 #pragma GCC diagnostic ignored "-Wsign-compare"
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #pragma GCC diagnostic ignored "-Wcomment"
 #pragma GCC diagnostic ignored "-Wreturn-type"
 #pragma GCC diagnostic ignored "-Wignored-qualifiers"
-#include "xla/literal.h"
-#include "xla/literal_util.h"
-#include "xla/pjrt/pjrt_client.h"
-#include "xla/pjrt/gpu/gpu_helpers.h"
-#include "xla/pjrt/gpu/se_gpu_pjrt_client.h"
-#include "xla/status.h"
-#include "xla/statusor.h"
-#include "xla/tools/hlo_module_loader.h"
-#include "tsl/platform/init_main.h"
-#include "tsl/platform/logging.h"
+#include <xla/literal.h>
+#include <xla/literal_util.h>
+#include <xla/pjrt/pjrt_client.h>
+#include <xla/pjrt/gpu/gpu_helpers.h>
+#include <xla/pjrt/gpu/se_gpu_pjrt_client.h>
+#include <xla/status.h>
+#include <xla/statusor.h>
+#include <xla/tools/hlo_module_loader.h>
+#include <tsl/platform/init_main.h>
+#include <tsl/platform/logging.h>
 #pragma GCC diagnostic pop
 
 int main(int argc, char** argv) {
