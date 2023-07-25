@@ -67,8 +67,5 @@ all: $(OBJS) $(SUBPROJ) \
 	    echo  $(OBJS)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
-#COMPILER=clang++
-#CCOMPILER=clang
-#LINKER=clang++
 
 CPPFLAGS += -fpermissive -Wno-all -Wno-extra
