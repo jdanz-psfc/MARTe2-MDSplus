@@ -34,6 +34,7 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
+/*
 #pragma gcc diagnostic push
 #pragma gcc diagnostic ignored "-Wall"
 #pragma gcc diagnostic ignored "-Wextra"
@@ -58,6 +59,7 @@
 #include <tsl/platform/init_main.h>
 #include <tsl/platform/logging.h>
 #pragma gcc diagnostic pop
+*/
 
 #include "PyGAM.h"
 #include "AdvancedErrorManagement.h"
