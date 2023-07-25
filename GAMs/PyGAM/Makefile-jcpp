@@ -1249,3 +1249,8 @@ LIBRARIES += -pthread
 LIBRARIES += -pthread
 LIBRARIES += -pthread
 LIBRARIES += -pthread
+LDLIBS += -pie
+LDLIBS += -Wl,-z,relro,-z,now
+LDLIBS += -Wl,--gc-sections
+LDLIBS += -Wl,--build-id=md5
+LDLIBS += -Wl,--hash-style=gnu
