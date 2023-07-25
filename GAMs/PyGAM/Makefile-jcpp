@@ -1,5 +1,9 @@
 JAX_DIR = /tmp/jbazeloutput
 
+CPPFLAGS += -fPIE -std=c++17
+INCLUDES += -I/usr/local/lib64/python3.9/site-packages/jaxlib
+LIBRARIES += -L/usr/local/lib64/python3.9/site-packages/jaxlib -lstdc++
+
 LIBRARIES += -ldl
 LIBRARIES += -lm
 LIBRARIES += -lpthread
@@ -126,4 +130,3 @@ LIBRARIES += -pthread
 LIBRARIES += -pthread
 LIBRARIES += -pthread
 LIBRARIES += -pthread
-LIBRARIES += -pie
