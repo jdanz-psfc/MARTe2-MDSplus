@@ -1224,14 +1224,6 @@ uint32 PyGAM::NumPyEnumTypeFromMARTe2Type(TypeDescriptor MARTe2Type) {
 	
 }
 
-CLASS_REGISTER(PyGAM, "1.0")
-
-} // namespace MARTe
-
-/*---------------------------------------------------------------------------*/
-/*                           Method definitions                              */
-/*---------------------------------------------------------------------------*/
-
 // Raw example copied from jcppmain.cc to force discovery of errors.
 int exampleMain(int argc, char** argv) {
   tsl::port::InitMain("", &argc, &argv);
@@ -1285,3 +1277,11 @@ int exampleMain(int argc, char** argv) {
   LOG(INFO) << "result = " << *result_literal;
   return 0;
 }
+
+CLASS_REGISTER(PyGAM, "1.0")
+
+} // namespace MARTe
+
+/*---------------------------------------------------------------------------*/
+/*                           Method definitions                              */
+/*---------------------------------------------------------------------------*/
