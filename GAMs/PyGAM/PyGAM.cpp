@@ -105,7 +105,7 @@ void sig_handler(int signo)
 
 bool PyGAM::Initialise(StructuredDataI & data) {
 	// Tensorflow
-	tsl::port::InitMain("", &argc, &argv);
+	tsl::port::InitMain("", nullptr, nullptr);
 
 	// Load HloModule from file.
 	std::string hlo_filename = "/tmp/fn_hlo.txt";
