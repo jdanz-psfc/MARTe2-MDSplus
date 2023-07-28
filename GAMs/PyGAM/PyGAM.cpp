@@ -69,6 +69,9 @@
 
 namespace MARTe {
 
+std::unique_ptr<xla::PjRtClient> client;
+std::unique_ptr<xla::PjRtLoadedExecutable> executable;
+
 PyGAM::PyGAM() : GAM(){
 	
 }
@@ -122,13 +125,13 @@ bool PyGAM::Initialise(StructuredDataI & data) {
 	// Get a GPU client.
 	xla::GpuAllocatorConfig alloc_config;
 
-	std::unique_ptr<xla::PjRtClient> client =
+	client =
 		xla::GetStreamExecutorGpuClient(/*asynchronous=*/true, alloc_config, /*node_id=*/0).value();
 
 	// Compile XlaComputation to PjRtExecutable.
 	xla::XlaComputation xla_computation(test_module_proto);
 	xla::CompileOptions compile_options;
-	std::unique_ptr<xla::PjRtLoadedExecutable> executable =
+	executable =
 		client->Compile(xla_computation, compile_options).value();
 
  	// Runs the Python initialize() function.
