@@ -104,6 +104,32 @@ void sig_handler(int signo)
 }
 
 bool PyGAM::Initialise(StructuredDataI & data) {
+	// Tensorflow
+	tsl::port::InitMain("", &argc, &argv);
+
+	// Load HloModule from file.
+	std::string hlo_filename = "/tmp/fn_hlo.txt";
+	std::function<void(xla::HloModuleConfig*)> config_modifier_hook =
+		[](xla::HloModuleConfig* config) { config->set_seed(42); };
+	std::unique_ptr<xla::HloModule> test_module =
+		LoadModuleFromFile(hlo_filename, xla::hlo_module_loader_details::Config(),
+							"txt", config_modifier_hook)
+			.value();
+	const xla::HloModuleProto test_module_proto = test_module->ToProto();
+
+	// Run it using JAX C++ Runtime (PJRT).
+
+	// Get a GPU client.
+	xla::GpuAllocatorConfig alloc_config;
+
+	std::unique_ptr<xla::PjRtClient> client =
+		xla::GetStreamExecutorGpuClient(/*asynchronous=*/true, alloc_config, /*node_id=*/0).value();
+
+	// Compile XlaComputation to PjRtExecutable.
+	xla::XlaComputation xla_computation(test_module_proto);
+	xla::CompileOptions compile_options;
+	std::unique_ptr<xla::PjRtLoadedExecutable> executable =
+		client->Compile(xla_computation, compile_options).value();
 
  	// Runs the Python initialize() function.
   
@@ -781,6 +807,28 @@ bool PyGAM::Execute() {
 		isFirstRun = false;
 		
 	}
+
+	// Prepare inputs.
+	xla::Literal literal_x =
+		xla::LiteralUtil::CreateR2<float>({{1.0f, 2.0f}});
+	xla::Literal literal_y =
+		xla::LiteralUtil::CreateR2<float>({{1.0f, 1.0f}, {1.0f, 1.0f}});
+	std::unique_ptr<xla::PjRtBuffer> param_x =
+		client->BufferFromHostLiteral(literal_x, client->addressable_devices()[0])
+			.value();
+	std::unique_ptr<xla::PjRtBuffer> param_y =
+		client->BufferFromHostLiteral(literal_y, client->addressable_devices()[0])
+			.value();
+
+	xla::ExecuteOptions execute_options;
+	// One vector<buffer> for each device.
+	std::vector<std::vector<std::unique_ptr<xla::PjRtBuffer>>> results =
+		executable->Execute({{param_x.get()}}, execute_options)
+			.value();
+
+	// Get result.
+	std::shared_ptr<xla::Literal> result_literal =
+		results[0][0]->ToLiteralSync().value();
 	
 	/***********************************************************************//**
 	* 
@@ -1222,60 +1270,6 @@ uint32 PyGAM::NumPyEnumTypeFromMARTe2Type(TypeDescriptor MARTe2Type) {
 	
 	return enumType;
 	
-}
-
-// Raw example copied from jcppmain.cc to force discovery of errors.
-int exampleMain(int argc, char** argv) {
-  tsl::port::InitMain("", &argc, &argv);
-
-  // Load HloModule from file.
-  std::string hlo_filename = "/tmp/fn_hlo.txt";
-  std::function<void(xla::HloModuleConfig*)> config_modifier_hook =
-      [](xla::HloModuleConfig* config) { config->set_seed(42); };
-  std::unique_ptr<xla::HloModule> test_module =
-      LoadModuleFromFile(hlo_filename, xla::hlo_module_loader_details::Config(),
-                         "txt", config_modifier_hook)
-          .value();
-  const xla::HloModuleProto test_module_proto = test_module->ToProto();
-
-  // Run it using JAX C++ Runtime (PJRT).
-
-  // Get a GPU client.
-  xla::GpuAllocatorConfig alloc_config;
-
-  std::unique_ptr<xla::PjRtClient> client =
-      xla::GetStreamExecutorGpuClient(/*asynchronous=*/true, alloc_config, /*node_id=*/0).value();
-
-  // Compile XlaComputation to PjRtExecutable.
-  xla::XlaComputation xla_computation(test_module_proto);
-  xla::CompileOptions compile_options;
-  std::unique_ptr<xla::PjRtLoadedExecutable> executable =
-      client->Compile(xla_computation, compile_options).value();
-
-  // Prepare inputs.
-  xla::Literal literal_x =
-      xla::LiteralUtil::CreateR2<float>({{1.0f, 2.0f}});
-  xla::Literal literal_y =
-      xla::LiteralUtil::CreateR2<float>({{1.0f, 1.0f}, {1.0f, 1.0f}});
-  std::unique_ptr<xla::PjRtBuffer> param_x =
-      client->BufferFromHostLiteral(literal_x, client->addressable_devices()[0])
-          .value();
-  std::unique_ptr<xla::PjRtBuffer> param_y =
-      client->BufferFromHostLiteral(literal_y, client->addressable_devices()[0])
-          .value();
-
-  // Execute on CPU.
-  xla::ExecuteOptions execute_options;
-  // One vector<buffer> for each device.
-  std::vector<std::vector<std::unique_ptr<xla::PjRtBuffer>>> results =
-      executable->Execute({{param_x.get()}}, execute_options)
-          .value();
-
-  // Get result.
-  std::shared_ptr<xla::Literal> result_literal =
-      results[0][0]->ToLiteralSync().value();
-  LOG(INFO) << "result = " << *result_literal;
-  return 0;
 }
 
 CLASS_REGISTER(PyGAM, "1.0")
