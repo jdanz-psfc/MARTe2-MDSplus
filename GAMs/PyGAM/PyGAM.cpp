@@ -124,7 +124,7 @@ bool PyGAM::Initialise(StructuredDataI & data) {
 	
 	// Loading numpy module.
 	import_array();
-	
+        PyEval_InitThreads();	
 	/***********************************************************************//**
 	* 
 	* Firstly, the module (the .py file) is loaded by the Python interpreter.
@@ -739,7 +739,10 @@ bool PyGAM::Setup() {
 } // Setup()
 
 bool PyGAM::Execute() {
-	
+PyGILState_STATE gstate;
+
+// Perform operations on Python objects here...
+
 	bool ok = false;
 	
 	// Sleep for debugging
@@ -772,7 +775,8 @@ bool PyGAM::Execute() {
 	* 2. Call of the execute() method of the Python code.
 	* 
 	***************************************************************************/
-	
+       // gstate = PyGILState_Ensure();
+        std::cout << "GOT THE GIL" << "\n";	
 	pOutputs = PyObject_CallObject(pFunc, pInputs);
 	
 	// TODO: this checks should be moved away from the execute method (maybe a phony execute() call in Setup()?)
@@ -785,7 +789,7 @@ bool PyGAM::Execute() {
 		goto error;
 		
 	}
-	
+	std::cout << "called the object" << "\n";
 	ok = PyTuple_Check(pOutputs);
 	if (!ok) {
 		
@@ -876,7 +880,7 @@ bool PyGAM::Execute() {
  	RefreshData(OutputSignals);
 		
 	Py_XDECREF(pOutputs);
-	
+	// PyGILState_Release(gstate);
 	/***********************************************************************//**
 	* 
 	* 5. Return and error handling.
