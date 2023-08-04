@@ -32,6 +32,32 @@
 /*                          Project header includes                          */
 /*---------------------------------------------------------------------------*/
 
+
+#pragma gcc diagnostic push
+#pragma gcc diagnostic ignored "-Wall"
+#pragma gcc diagnostic ignored "-Wextra"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma GCC diagnostic ignored "-Wcomment"
+#pragma GCC diagnostic ignored "-Wreturn-type"
+#pragma GCC diagnostic ignored "-Wignored-qualifiers"
+#pragma GCC diagnostic ignored "-Wmissing-declarations"
+#pragma GCC diagnostic ignored "-Wundef"
+#pragma GCC diagnostic ignored "-fpermissive"
+#pragma GCC diagnostic ignored "-pedantic"
+#include <xla/literal.h>
+#include <xla/literal_util.h>
+#include <xla/pjrt/pjrt_client.h>
+#include <xla/pjrt/gpu/gpu_helpers.h>
+#include <xla/pjrt/gpu/se_gpu_pjrt_client.h>
+#include <xla/status.h>
+#include <xla/statusor.h>
+#include <xla/tools/hlo_module_loader.h>
+#include <tsl/platform/init_main.h>
+#include <tsl/platform/logging.h>
+#pragma gcc diagnostic pop
+
 #include "GAM.h"
 #include "StructuredDataI.h"
 #include "MessageI.h"
@@ -219,6 +245,8 @@ private:
 	 */
 	uint32 NumPyEnumTypeFromMARTe2Type(TypeDescriptor MARTe2Type);
 	
+	std::unique_ptr<xla::PjRtClient> client;
+	std::unique_ptr<xla::PjRtLoadedExecutable> executable;
 };
 
 } // namespace MARTe

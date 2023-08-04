@@ -43,7 +43,7 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 
-CPPFLAGS += -Wno-unused-function
+CPPFLAGS += -Wno-unused-function -Wno-error
 
 ##############################################################
 ####THE FOLLOWING DEFINITIONS MUST BE CHANGED IN ORDER TO ADAPT 
@@ -52,11 +52,12 @@ CPPFLAGS += -Wno-unused-function
 INCLUDES += -I/usr/include/python3.9/
 INCLUDES += -I/usr/local/lib64/python3.9/site-packages/numpy/core/include
 # Python interpreter folder
-PYINTERPRETER = /usr/lib/arm-linux-gnueabihf/
+PYINTERPRETER = /usr/lib/python3.9/
 
 ###############################################################
 
 
+include Makefile-jcpp
 
 # Linker flags requested by python3.7-config
 LIBRARIES += -L$(PYINTERPRETER) -lpython3.9 -lutil -Xlinker -export-dynamic
@@ -67,3 +68,4 @@ all: $(OBJS) $(SUBPROJ) \
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
 
+CPPFLAGS += -fpermissive -Wno-all -Wno-extra

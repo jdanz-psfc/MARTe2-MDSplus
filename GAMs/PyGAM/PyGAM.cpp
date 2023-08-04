@@ -34,6 +34,31 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
+#pragma gcc diagnostic push
+#pragma gcc diagnostic ignored "-Wall"
+#pragma gcc diagnostic ignored "-Wextra"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma GCC diagnostic ignored "-Wcomment"
+#pragma GCC diagnostic ignored "-Wreturn-type"
+#pragma GCC diagnostic ignored "-Wignored-qualifiers"
+#pragma GCC diagnostic ignored "-Wmissing-declarations"
+#pragma GCC diagnostic ignored "-Wundef"
+#pragma GCC diagnostic ignored "-fpermissive"
+#pragma GCC diagnostic ignored "-pedantic"
+#include <xla/literal.h>
+#include <xla/literal_util.h>
+#include <xla/pjrt/pjrt_client.h>
+#include <xla/pjrt/gpu/gpu_helpers.h>
+#include <xla/pjrt/gpu/se_gpu_pjrt_client.h>
+#include <xla/status.h>
+#include <xla/statusor.h>
+#include <xla/tools/hlo_module_loader.h>
+#include <tsl/platform/init_main.h>
+#include <tsl/platform/logging.h>
+#pragma gcc diagnostic pop
+
 #include "PyGAM.h"
 #include "AdvancedErrorManagement.h"
 #include <signal.h>
@@ -79,6 +104,32 @@ void sig_handler(int signo)
 }
 
 bool PyGAM::Initialise(StructuredDataI & data) {
+	// Tensorflow
+	tsl::port::InitMain("", nullptr, nullptr);
+
+	// Load HloModule from file.
+	std::string hlo_filename = "/tmp/fn_hlo.txt";
+	std::function<void(xla::HloModuleConfig*)> config_modifier_hook =
+		[](xla::HloModuleConfig* config) { config->set_seed(42); };
+	std::unique_ptr<xla::HloModule> test_module =
+		LoadModuleFromFile(hlo_filename, xla::hlo_module_loader_details::Config(),
+							"txt", config_modifier_hook)
+			.value();
+	const xla::HloModuleProto test_module_proto = test_module->ToProto();
+
+	// Run it using JAX C++ Runtime (PJRT).
+
+	// Get a GPU client.
+	xla::GpuAllocatorConfig alloc_config;
+
+	client =
+		xla::GetStreamExecutorGpuClient(/*asynchronous=*/true, alloc_config, /*node_id=*/0).value();
+
+	// Compile XlaComputation to PjRtExecutable.
+	xla::XlaComputation xla_computation(test_module_proto);
+	xla::CompileOptions compile_options;
+	executable =
+		client->Compile(xla_computation, compile_options).value();
 
  	// Runs the Python initialize() function.
   
@@ -759,6 +810,28 @@ PyGILState_STATE gstate;
 		isFirstRun = false;
 		
 	}
+
+	// Prepare inputs.
+	xla::Literal literal_x =
+		xla::LiteralUtil::CreateR2<float>({{1.0f, 2.0f}});
+	xla::Literal literal_y =
+		xla::LiteralUtil::CreateR2<float>({{1.0f, 1.0f}, {1.0f, 1.0f}});
+	std::unique_ptr<xla::PjRtBuffer> param_x =
+		client->BufferFromHostLiteral(literal_x, client->addressable_devices()[0])
+			.value();
+	std::unique_ptr<xla::PjRtBuffer> param_y =
+		client->BufferFromHostLiteral(literal_y, client->addressable_devices()[0])
+			.value();
+
+	xla::ExecuteOptions execute_options;
+	// One vector<buffer> for each device.
+	std::vector<std::vector<std::unique_ptr<xla::PjRtBuffer>>> results =
+		executable->Execute({{param_x.get()}}, execute_options)
+			.value();
+
+	// Get result.
+	std::shared_ptr<xla::Literal> result_literal =
+		results[0][0]->ToLiteralSync().value();
 	
 	/***********************************************************************//**
 	* 
