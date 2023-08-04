@@ -131,6 +131,8 @@ bool PyGAM::Initialise(StructuredDataI & data) {
 	executable =
 		client->Compile(xla_computation, compile_options).value();
 
+	std::cout << "Compiled XLA Executable" << "\n";
+
  	// Runs the Python initialize() function.
   
 	bool ok = GAM::Initialise(data);
@@ -832,6 +834,8 @@ PyGILState_STATE gstate;
 	// Get result.
 	std::shared_ptr<xla::Literal> result_literal =
 		results[0][0]->ToLiteralSync().value();
+
+	std::cout << "Got result from XLA: " << result_literal << "\n";
 	
 	/***********************************************************************//**
 	* 
