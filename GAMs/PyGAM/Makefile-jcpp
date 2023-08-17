@@ -1,4 +1,4 @@
-JAX_DIR = /tmp/jbazeloutput
+JAX_DIR = /opt/jax_bazeloutput
 
 CPPFLAGS += -fPIC -std=c++17
 INCLUDES += -I/usr/local/lib64/python3.9/site-packages/jaxlib
