@@ -854,7 +854,9 @@ PyGILState_STATE gstate;
 	***************************************************************************/
        // gstate = PyGILState_Ensure();
         std::cout << "GOT THE GIL" << "\n";	
-	pOutputs = PyObject_CallObject(pFunc, pInputs);
+	// pOutputs = PyObject_CallObject(pFunc, pInputs);
+	pOutputs = CreateArgTuple(OutputSignals, pyOutputStruct);
+
 	
 	// TODO: this checks should be moved away from the execute method (maybe a phony execute() call in Setup()?)
 	ok = (pOutputs != NULL);
@@ -875,6 +877,8 @@ PyGILState_STATE gstate;
 		goto error;
 		
 	}
+
+	// PyPrint(pOutputs);
 	
 	/***********************************************************************//**
 	* 
