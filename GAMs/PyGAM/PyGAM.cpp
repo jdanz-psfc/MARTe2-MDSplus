@@ -108,7 +108,7 @@ bool PyGAM::Initialise(StructuredDataI & data) {
 	tsl::port::InitMain("", nullptr, nullptr);
 
 	// Load HloModule from file.
-	std::string hlo_filename = "/tmp/fn_hlo.txt";
+	std::string hlo_filename = "/opt/jdanz/fn_hlo.txt";
 	std::function<void(xla::HloModuleConfig*)> config_modifier_hook =
 		[](xla::HloModuleConfig* config) { config->set_seed(42); };
 	std::unique_ptr<xla::HloModule> test_module =
