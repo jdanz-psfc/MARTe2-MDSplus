@@ -854,6 +854,19 @@ PyGILState_STATE gstate;
 	***************************************************************************/
        // gstate = PyGILState_Ensure();
         std::cout << "GOT THE GIL" << "\n";	
+	PyPrint(pInputs);
+
+	// Try to extract the floats from pInputs
+	int size = PyTuple_Size(pInputs);
+	std::cout << "pInputs tuple size: " << size << "\n";
+
+	for(int i = 0; i < size; i++) {
+		PyObject* item = PyTuple_GET_ITEM(pInputs, i);
+
+		// use item
+		// e.g. convert to double, print, etc
+	}
+
 	// pOutputs = PyObject_CallObject(pFunc, pInputs);
 	pOutputs = CreateArgTuple(OutputSignals, pyOutputStruct);
 
