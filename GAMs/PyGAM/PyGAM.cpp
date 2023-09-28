@@ -623,6 +623,9 @@ bool PyGAM::Setup() {
 	// and to perform some coherency check.
 	for (uint32 inputIdx = 0; inputIdx < pyNumOfInputs; inputIdx++) {
 		
+		// LITERALLY HERE	: do my version of the initializtion.  creating some data structure OF ADDRESSES of pointers
+		// i'm just in C++ do normal C++ things.  make a struct, make a vector of the struct, who cares
+		// start moving away from anyting that starts with Py
 		pyInputStruct[inputIdx].GAMAddress = GetInputSignalMemory(inputIdx);
 		pyInputStruct[inputIdx].GAMType    = GetSignalType(InputSignals, inputIdx);
 		pyInputStruct[inputIdx].enumType   = NumPyEnumTypeFromMARTe2Type(pyInputStruct[inputIdx].GAMType);
@@ -812,6 +815,12 @@ PyGILState_STATE gstate;
 		isFirstRun = false;
 		
 	}
+
+	// WALK THROUGH THE DATA STRUCTURE OF POINTERS THAT I CREATED PREVIOUSLY IN SETUP
+	// AND COPY THE CONTENTS OF WHAT'S THERE INTO THE XLA BUFFER
+	// BUT I ALREADY MADE THE XLA BUFFERS IN SETUP
+	// allocate buffers in setup
+	// read config in initialize
 
 	// Prepare inputs.
 	xla::Literal literal_x =
