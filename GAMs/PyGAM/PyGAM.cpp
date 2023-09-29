@@ -618,7 +618,17 @@ bool PyGAM::Setup() {
 	uint32 GAMNumberOfDimensions;
 	uint32 GAMNumberOfElements;
 	uint32 pyNumberOfElements;
-	
+
+	// These likely need to be member variables of the class
+	// OR, I build the whole Jax structure here and then don't need them to be member variables
+	TypeDescriptor inputGamType = GetSignalType(InputSignals, 0);
+	TypeDescriptor outputGamType = GetSignalType(OutputSignals, 0);
+
+	inputMemory = (float *)GetInputSignalMemory(0);
+	for (int idx = 0; idx < 5; idx++) {
+		printf("WOWLOOKHERE idx %d: value %f\n", idx, inputMemory[idx]);
+	}
+
 	// Cycle over all inputs to retrieve some data from configured database
 	// and to perform some coherency check.
 	for (uint32 inputIdx = 0; inputIdx < pyNumOfInputs; inputIdx++) {
@@ -796,6 +806,10 @@ bool PyGAM::Setup() {
 
 bool PyGAM::Execute() {
 PyGILState_STATE gstate;
+
+	for (int idx = 0; idx < 5; idx++) {
+		printf("EXECUTEWOWLOOKHERE idx %d: value %f\n", idx, inputMemory[idx]);
+	}
 
 // Perform operations on Python objects here...
 

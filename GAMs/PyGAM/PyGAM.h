@@ -178,6 +178,14 @@ private:
 	
 	PyObject *pInputs;									//!< PyObject tuple holding input values.  @details A tuple is needed since only tuples are allowed as input of PyObject_CallObject().
 	PyObject *pOutputs;									//!< PyObject tuple holding output values. @details A tuple is needed since only tuples are allowed as input of PyObject_CallObject().
+
+	// Take this, wrap it in a struct
+	// void * to be generic pointer because
+	// there's stuff to do with unions to make that a little
+	// finding the XLA's ability to create a buffer and then write to it again
+	// an XLA structure that we can update is the key
+	// if it really comes down to having to make an XLA structure every frame, the Jax stuff is probably a failure
+	float *inputMemory;
 	//@}
 	
 	/**
