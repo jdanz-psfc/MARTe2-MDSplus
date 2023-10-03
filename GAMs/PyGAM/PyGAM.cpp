@@ -848,10 +848,17 @@ PyGILState_STATE gstate;
 		client->BufferFromHostLiteral(literal_y, client->addressable_devices()[0])
 			.value();
 
+
+	xla::BorrowingLiteral literal((const char *)inputMemory, xla::ShapeUtil::MakeShape(xla::PrimitiveType::F32, {5}));
+
+	std::unique_ptr<xla::PjRtBuffer> param =
+		client->BufferFromHostLiteral(literal, client->addressable_devices()[0])
+			.value();
+
 	xla::ExecuteOptions execute_options;
 	// One vector<buffer> for each device.
 	std::vector<std::vector<std::unique_ptr<xla::PjRtBuffer>>> results =
-		executable->Execute({{param_x.get()}}, execute_options)
+		executable->Execute({{param.get()}}, execute_options)
 			.value();
 
 	// Get result.
