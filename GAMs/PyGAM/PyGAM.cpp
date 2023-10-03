@@ -866,6 +866,22 @@ PyGILState_STATE gstate;
 		results[0][0]->ToLiteralSync().value();
 
 	std::cout << "Got result from XLA: " << result_literal << "\n";
+
+	// Dereference the shared_ptr
+	xla::Literal& res_literal = *result_literal;
+
+	// Get shape info
+	xla::Shape output_shape = res_literal.shape();
+
+	std::cout << "Output shape element type: " << output_shape.element_type() << "\n";
+
+	std::vector<xla::Literal> tupleElements = res_literal.DecomposeTuple();
+	std::cout << "Able to decompose output as a tuple with " << tupleElements.size() << " elements" << "\n";
+	for (const xla::Literal& element : tupleElements) {
+		// Access each individual element of the tuple.
+		float value = element.Get<float>({});
+		std::cout << "Tuple element: " << value << std::endl;
+	}
 	
 	/***********************************************************************//**
 	* 
